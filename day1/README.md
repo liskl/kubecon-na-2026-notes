@@ -2,6 +2,8 @@
 
 Session notes from the Monday colocated events in Salt Lake City, written for our engineering org — a data and analytics group in a regulated healthcare setting. This assumes attendance of the Monday **primary** sessions. Backups are in a shorter section at the end.
 
+The takeaways and recommended next steps assume we already run Backstage and Flux in production. They are about extending, hardening, or improving that setup, not about adopting either tool.
+
 Times are Mountain Time, labeled MT, and come from the live Sessionize schedule as of Tuesday 10 November 2026. One itinerary slot had moved: [Zero-Touch App Team Onboarding](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1267718) is officially **11:50–12:15 MT**, not 09:45.
 
 Slide links are the official Sessionize "Presentation Slides" uploads, rechecked the morning of 10 November 2026. Where a deck existed, the notes below are taken from that deck. Where it did not, the notes are labeled as based only on the official abstract.
@@ -41,15 +43,15 @@ flowchart TB
 
 ## Recommended next steps for our org
 
-1. **Audit how any agent or MCP client authenticates, this week.** If a client is wired to a static admin token, or signs in as a human and inherits that person's full rights, that is the wrong default. On Backstage, the practical first pass is the three settings checks from Kozuka's talk: allow only approved clients (and restrict static tokens), expose only the actions agents actually need, and turn on the permission framework so calls cannot skip policy. Do not wait for the upstream token-claim work.
+1. **Harden our Backstage as the front door for AI agents and MCP.** If a client is wired to a static admin token, or signs in as a human and inherits that person's full rights, that is the wrong default. This week, run the three settings checks from Kozuka's talk on our instance: allow only approved clients (and restrict static tokens), expose only the actions agents actually need, and turn on the permission framework so calls cannot skip policy. Do not wait for the upstream token-claim work. Use the existing catalog — ownership, RBAC, and review — as the place agents, MCP servers, and skills are discovered, rather than a side channel of READMEs and chat threads.
 
-2. **Keep Git as the enforcement point when agents propose infrastructure or platform changes.** Agents can draft manifests, resource patches, or catalog updates. Humans, policy, and admission should still be what lands in a cluster. The SLO talk's rule is worth adopting as a platform principle: an LLM must not touch production directly. In our setting, a pull request with a review trail is also the audit trail.
+2. **Tighten Flux tenant onboarding and multi-tenancy, instead of opening a parallel GitOps path.** Assess our current app-team onboarding against the zero-touch pattern: self-service onto the Flux we already run, without a platform ticket; Flux Operator for Flux lifecycle if we still manage that by hand; notification-controller wired back into CI so developers see reconcile status; and automatic privilege boundaries between teams. Until that talk has slides, treat the isolation mechanism as unverified, but the product shape is the gap to measure.
 
-3. **Treat catalog ownership as an operational defect, not housekeeping.** If we run a service catalog (Backstage or otherwise), measure orphaned and "zombie" owners, and put a human-in-the-loop proposal flow in front of any agent that will read `spec.owner`. Stepstone open-sourced [ownership-matcher](https://github.com/stepstone-tech/backstage-plugins) for this.
+3. **Automate Backstage catalog ownership.** Measure orphaned and "zombie" owners on our catalog, and put a human-in-the-loop proposal and escalation flow in front of any agent that will read `spec.owner`. Stale owners used to be embarrassing; when agents query the catalog, they are a bug. Stepstone open-sourced [ownership-matcher](https://github.com/stepstone-tech/backstage-plugins) for this.
 
-4. **If we put MCP servers on Kubernetes, do not hang them off ordinary ingress and hope.** Name the transport, separate connection state from tool state, set distinct idle / lifetime / tool deadlines, and require an idempotency key or status lookup before retrying a mutation. A failed stream is not proof that the side effect did not happen.
+4. **Keep Flux as the enforcement layer when agents propose infrastructure or platform changes; keep Backstage as the interface, not the control plane.** That is the actual argument in "IDPs Are Dead": the portal stays, and GitOps, approvals, policy, and admission are what have to hold. Agents can draft manifests, resource patches, or catalog updates as pull requests; Flux should reconcile only what passed review. An LLM must not touch production directly. Crossplane, if we pursue it, sits alongside this setup as a composition API for self-service infra — cataloged and owned in Backstage, applied through Flux — not as a replacement for either.
 
-5. **Stop treating CPU, memory, and GPU requests as a developer guess.** Start from SLOs and error budgets for ordinary services, and change requests only through Git and canaries. If we schedule shared accelerators, watch Kueue's DRA integration (quota by memory or slice, not just device count) and WAS, and do not assume current quota APIs are enough.
+5. **Drive resource changes through the Git Flux already reconciles, and treat in-cluster MCP as a data-plane problem.** Start from SLOs and error budgets for ordinary services, and change requests only through Git and canaries, not a raw LLM writing production specs. If we schedule shared accelerators, watch Kueue's DRA integration (quota by memory or slice, not just device count) and WAS. If we deploy MCP servers on Kubernetes, do not hang them off ordinary ingress: name the transport, separate connection state from tool state, set distinct idle / lifetime / tool deadlines, and require an idempotency key or status lookup before retrying a mutation.
 
 ---
 
@@ -66,9 +68,9 @@ Flux started in 2016 as one of the first tools to put Git at the center of Kuber
 
 **Key takeaways**
 
-- **Watch:** Flux's next year is being framed around agents and a first-class UI, not only controllers. If we already run Flux, the Operator UI and any agent-facing APIs are the pieces to track.
-- **Adopt the direction, not a new tool:** keeping Git as the source of truth is still the right model when agents start opening changes; the abstract is about making Flux usable by both humans and agents, not replacing GitOps.
-- **Try:** when the recording or slides land, map the new Toolkit / Operator features against our current Flux footprint before inventing a parallel agent-to-cluster path.
+- **Watch:** Flux's next year is being framed around agents and a first-class UI, not only controllers. The Operator UI and any agent-facing APIs are the pieces to map onto our current Flux footprint.
+- **Extend Flux rather than add a side path:** keeping Git as the source of truth is still the right model when agents start opening changes. The abstract is about making the Flux we already run usable by both humans and agents, not replacing GitOps.
+- **Try:** when the recording or slides land, compare the new Toolkit / Operator features with how we install, upgrade, and expose Flux today, before inventing a parallel agent-to-cluster path.
 - **Risk:** "wiring Flux into AI agents" is only safe if agents cannot apply around review. The later FluxCon backup on guardrails (see below) is the necessary counterpart, and it also had no slides posted yet.
 
 ---
@@ -94,9 +96,9 @@ The migration was centralized: they did not ask plugin teams to do it themselves
 
 **Key takeaways**
 
-- **Adopt the method, even if we are not at Spotify's scale:** write a concrete skill / decision tree, iterate it every time the agent surprises you, and keep humans on review rather than on grunt wiring. Small, isolated, consistent changes are what worked for their agents.
-- **Try a centralized pass** for portal or plugin migrations instead of a long tail of "each team will get to it." Owners reviewed a short PR; they did not have to do the rewrite.
-- **Watch NFS 1.0 and OFS deprecation** if we have a Backstage-based portal. The learning slide is blunt: NFS is where the project is going, and the only system plugins will support.
+- **Use their method on our instance:** write a concrete skill / decision tree, iterate it every time the agent surprises you, and keep humans on review rather than on grunt wiring. Small, isolated, consistent changes are what worked for their agents.
+- **Try a centralized pass** for our plugin or frontend migrations instead of a long tail of "each team will get to it." Owners reviewed a short PR; they did not have to do the rewrite.
+- **Watch NFS 1.0 and OFS deprecation on our Backstage.** The learning slide is blunt: NFS is where the project is going, and the only system plugins will support.
 - **Risk:** they had an organizational mandate to force-merge on a two-day deadline, plus feature flags for the hard pages. In a regulated environment, copy the skill, the preview builds, and the flags; do not copy an emergency merge process that skips the controls we actually need.
 - **Do not over-read the abstract's larger numbers.** The official abstract says "about 150 plugins" in "roughly ten weeks" and "around half a million lines." The deck's timeline is more precise: 142 plugins in 6 weeks. Use the deck.
 
@@ -154,9 +156,9 @@ flowchart TD
 
 **Key takeaways**
 
-- **Adopt the product shape:** self-service onboarding that does not open a platform ticket, plus a status loop back into CI, is the right UX even if our cluster count is much smaller than "hundreds."
-- **Watch the security claim closely.** "No platform-team intervention" only works if tenancy and privilege boundaries are enforced automatically. The abstract says they prevent privilege escalation across teams; until slides or a recording exist, treat the mechanism as unknown and do not copy a workflow that skips review.
-- **Try Flux Operator** for Flux lifecycle management if we are still installing and upgrading Flux by hand, and look at notification-controller as the way developers learn that a reconcile succeeded or failed without asking Slack.
+- **Improve our Flux onboarding, not our choice of tool:** self-service onto the clusters Flux already manages, without a platform ticket, plus a status loop back into CI, is the UX to measure our current process against, even if our cluster count is much smaller than "hundreds."
+- **Watch the security claim closely, especially our tenant boundaries.** "No platform-team intervention" only works if tenancy and privilege boundaries are enforced automatically. The abstract says they prevent privilege escalation across teams; until slides or a recording exist, treat the mechanism as unknown and do not loosen our review or isolation model to copy the workflow.
+- **Try Flux Operator** for Flux lifecycle management if we still install and upgrade Flux by hand, and wire notification-controller into CI if developers still have to ask whether a reconcile succeeded or failed.
 - **Risk:** a financial-institution pattern may still be a useful reference for healthcare, but we cannot verify SLA or isolation details from the abstract alone.
 
 ---
@@ -172,9 +174,9 @@ Building a Crossplane control plane is one thing; getting real teams at a risk-a
 
 **Key takeaways**
 
-- **Watch for the recording.** Five minutes is short, but an insurance-company adoption story is close to our constraints (risk-averse, regulated, existing request queues).
-- **Try, once we have the talk rather than the abstract:** review any Crossplane compositions we already have for the same failure modes the abstract flags — APIs developers cannot use, weak defaults, and unclear ownership and support.
-- **Adopt the framing:** leaving a prototype is an adoption and support problem, not only a control-plane problem. A composition that only the platform team can operate is still a ticket queue.
+- **Watch for the recording.** Five minutes is short, but an insurance-company adoption story is close to our constraints (risk-averse, regulated, existing request queues). The useful question is how a composition API would sit next to the Backstage and Flux we already run, not whether it would replace them.
+- **Try, once we have the talk rather than the abstract:** if we already have Crossplane compositions, review them for the failure modes the abstract flags — APIs developers cannot use, weak defaults, and unclear ownership and support. If we do not, use those same tests before adding one.
+- **Keep the framing next to our existing portal:** leaving a prototype is an adoption and support problem, not only a control-plane problem. A composition that only the platform team can operate is still a ticket queue, which is the problem Backstage is already supposed to take off that queue. Catalog and own the API in Backstage; let Flux apply what passed review.
 - **Risk:** without slides, we do not have the concrete API or ownership patterns they ended up with. Do not treat the abstract as a how-to.
 
 ---
@@ -254,11 +256,11 @@ flowchart LR
 
 **Key takeaways**
 
-- **Adopt the three settings checks immediately** if we expose Backstage (or any IDP) over MCP. Restrict the CIMD default client list, restrict or eliminate static tokens, expose only the actions we intend, and turn on permissions so calls cannot skip policy.
+- **Harden our Backstage MCP settings now**, whether the actions registry is already exposed or we are about to turn it on. Restrict the CIMD default client list, restrict or eliminate static tokens, expose only the actions we intend, and turn on permissions so calls cannot skip policy.
 - **Watch issue #36669** and do not invent a one-off token format that will fight upstream. The gap is real: you cannot grant an IDE agent read-only catalog access while a chat agent has fewer servers, not with today's token.
-- **Try a `tools/list` against our own MCP endpoint** as a signed-in user and inventory anything destructive. If unregister, restart, or sync actions are visible to every caller, that is the current default, not a hypothetical.
+- **Try a `tools/list` against our Backstage MCP endpoint** as a signed-in user (or as soon as we enable it) and inventory anything destructive. If unregister, restart, or sync actions are visible to every caller, that is the current default, not a hypothetical.
 - **Risk:** "permissions are on" is not enough while the agent is indistinguishable from the user. In a healthcare environment, an IDE agent that can unregister catalog entities or execute scaffolder templates as an engineer is a privileged automation path we probably did not intend to create.
-- **Do not wait for the sketch.** The talk is explicit that the per-agent token work is not in Backstage today. Harden settings now.
+- **Do not wait for the sketch.** The talk is explicit that the per-agent token work is not in Backstage today. Harden our instance's settings now.
 
 ---
 
@@ -322,10 +324,10 @@ The title is sharper than the abstract. Internal developer platforms were built 
 
 **Key takeaways**
 
-- **Adopt the enforcement idea, regardless of the title:** if agents can open PRs and trigger deploys, the controls that already matter in a healthcare setting — review, policy, admission, an audit trail in Git — are the ones that have to hold. The portal is not the control plane.
-- **Try treating MCP as an interface to the platform we already have,** not as a second, less-governed API. Whatever an agent can do through MCP should be the same operations we already authorize for humans, or a stricter subset.
+- **Read the title against the Backstage we already have.** The abstract is not "replace the portal." If agents can open PRs and trigger deploys, the controls that already matter in a healthcare setting — review, policy, admission, and the audit trail in Git that Flux reconciles — are the ones that have to hold. Backstage stays the interface; Flux, policy, and admission stay the control plane.
+- **Try treating MCP as an interface to our existing Backstage and Flux APIs,** not as a second, less-governed path around them. Whatever an agent can do through MCP should be the same operations we already authorize for humans, or a stricter subset.
 - **Watch** how other platform teams redesign golden paths so an agent can follow them without bypassing environment boundaries.
-- **Risk:** the title can be misread as "stop investing in the IDP." The abstract says the opposite. Do not pause catalog, ownership, or portal work because agents are in the loop; agents will query that catalog.
+- **Risk:** the title can be misread as "stop investing in the IDP." The abstract says the opposite. Do not pause catalog, ownership, or portal work on our Backstage because agents are in the loop; agents will query that catalog.
 
 ---
 
@@ -369,9 +371,9 @@ flowchart LR
 
 **Key takeaways**
 
-- **Adopt the rule "AI proposes, GitOps and canaries decide,"** including the three-layer guardrail. That is a pattern we can use for more than resource requests.
+- **Adopt the rule "AI proposes, GitOps and canaries decide,"** including the three-layer guardrail, on the Git Flux already reconciles. That is a pattern we can use for more than resource requests.
 - **Try connecting existing SLOs to a narrower, non-AI first step:** distinguish resource-caused error-budget burn from a bad release, and stop treating request values as tribal knowledge. The talk itself says start simpler, with less complexity up front.
-- **Watch field ownership in Git.** Ignore live replica counts if an autoscaler owns them; never ignore the fields a planner is allowed to change, or Git stops being the source of truth.
+- **Watch field ownership in the Git Flux reconciles.** Ignore live replica counts if an autoscaler owns them; never ignore the fields a planner is allowed to change, or Git stops being the source of truth.
 - **Do not apply this to stateful data stores.** They explicitly put databases, caches, and brokers out of scope. For our data platform, keep this in the stateless service / async worker tier.
 - **Risk:** a raw LLM writing production resource specs is worse than a slightly wrong human guess. Their "raw AI" column is the path not to take. The MVP is also still being calibrated, so this is a direction, not a finished system to install.
 

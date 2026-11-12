@@ -4,6 +4,6 @@ Personal daily session notes from KubeCon + CloudNativeCon NA 2026 (Salt Lake Ci
 
 | Day | Date | Notes |
 | --- | --- | --- |
-| Day 1 | Monday, Nov 9 | [day1](day1/README.md) |
+| Day 1 | Monday, Nov 9 | [day1](day1/README.md) — updated Nov 11 with 7 BackstageCon recordings |
 
-Slide images are from the speakers' official decks on the conference schedule and are credited to their authors. These are personal notes, not an official CNCF or Linux Foundation document.
+Slide images are from the speakers' official decks on the conference schedule, and recording frames are from the official CNCF YouTube uploads; both are credited to their authors. These are personal notes, not an official CNCF or Linux Foundation document.

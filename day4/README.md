@@ -69,6 +69,8 @@ Jeffrey Sica (CNCF), 09:00 MT. [Session](https://events.linuxfoundation.org/kube
 
 The CNCF numbers he gave: 21 million people build with cloud native tools, and more than 50,000 contributors from over 125 countries in the last 12 months, with bots filtered out. Maintainers responded to AI-generated pull requests by writing contribution policies for AI rather than closing the door. He cited an Anthropic analysis of 200,000 internal coding-agent sessions: six months ago an agent took about 10 actions before a human got involved, and now about 21. Jonathan Bryce calls this "agent speed." His argument is that cloud native rules, written "for unreliable machines on unreliable networks," are the right rules for an unreliable caller firing actions at 03:00. In an LF Research survey of about 500 practitioners, a third said they were growing their VM footprint because AI agents concerned them; his point was that existing primitives such as KubeVirt and Kata absorbed that requirement. Advice from the same research: "Don't gate your AI experimentation on some modernization roadmap."
 
+**From the community on X:** the CNCF's own recap ([@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120947332556501194), 12 Nov 11:30 MT) gives the precise figures: "21.2 million developers now build with cloud native, and nearly 50,000 contributed back over the past year." Sica previewed the talk the same morning ([@jeefy](https://x.com/jeefy/status/2120892379679080782), 12 Nov 07:52 MT): "I decided to talk about @FinalFantasy for ten minutes."
+
 ### Kubeflow Graduation: Powering the Next Era of Cloud Native AI With an Open Community
 
 Andrey Velichkevich (Kubeflow Steering Committee), Ekin Karabulut and Ron Kahn (NVIDIA), Vara Bonthu and Manabu McCloskey (AWS), 09:12 MT. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1352067) · [Recording](https://www.youtube.com/watch?v=1p53CW8ZoZU). *Based on the official recording; parts of the audio were unclear and are left out.*
@@ -80,6 +82,8 @@ Andrey Velichkevich (Kubeflow Steering Committee), Ekin Karabulut and Ron Kahn (
 Jorge Castro (CNCF), 09:21 MT. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1353351) · [Recording](https://www.youtube.com/watch?v=fwnHuyOSY0c). *Based on the official recording; names checked against the slides on screen.*
 
 The CNCF community awards. Lorem Ipsum (documentation): Dylan Reimerink (Cilium & eBPF), Jimmy Song (HAMi), and Natali Vlatko (Kubernetes SIG). Chop Wood Carry Water: Francisco Herrera and Steven Jin (Istio), Saiyam Pathak (TAG Leader), Joe Stringer (multiple projects), and Maciej Szulik (Kubernetes). Top Committer: Antonio Ojea. Lifetime Achievement: Julius Volz (co-creator of Prometheus, author of PromQL) and Rita Zhang.
+
+**From the community on X:** the Top Committer citation ([@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120917757848121522), 12 Nov 09:32 MT) credits Antonio Ojea's work "across Kubernetes networking, KIND testing, IPv6 dual-stack support, and DRANET." Rita Zhang responded ([@ritazzhang](https://x.com/ritazzhang/status/2120923262234566821), 12 Nov 09:54 MT): "Thank you for this CNCF Oscar! It's an honor." The CNCF's overview post says 11 contributors were recognized ([@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120932189508366363)).
 
 ### Scaling Multi-Modal Models and Computer-Use Agents on Kubernetes
 
@@ -131,11 +135,20 @@ Lin Sun (Solo.io), 10:12 MT. [Session](https://events.linuxfoundation.org/kubeco
 
 A live demo of a GitOps-managed agent cluster, using Argo CD for delivery and running agentgateway for ingress and egress, Agent Substrate (she said it went GA the previous Friday), kagent (1.0 two days earlier, now rebased on Agent Substrate), MCP servers behind an MCP gateway with Keycloak, and OpenTelemetry with Jaeger. Suspended agent "actors" resumed on demand, and several actors shared worker Pods. When an agent hit a rate-limit policy, a platform agent opened a PR to raise the limit. The audience reviewed and approved it, and the GitOps controller rolled it out. Publishing results required a Keycloak token with the right audience and subject at the MCP gateway.
 
+**From the community on X**
+
+- **A second presenter.** Kaslin Fields, posting live ([@kaslinfields](https://x.com/kaslinfields/status/2120929009458631068), 12 Nov 10:17 MT), wrote that Lin Sun presented with "Cory Jett from @soloio_inc" and that "They use a drone to take some footage of the audience." Sessionize lists only Lin Sun, so the speaker line above is unchanged.
+- **The live sequence, as she saw it.** The custom agent "hits a rate limit" ([@kaslinfields](https://x.com/kaslinfields/status/2120930046500360662), 10:21 MT). "The update got pushed via ArgoCD," and the agent in Agent Substrate woke up to serve the retried prompt ([@kaslinfields](https://x.com/kaslinfields/status/2120930670843474118), 10:24 MT). Then came observability in Jaeger, and "Apparently she used @Google's Veo video model" ([@kaslinfields](https://x.com/kaslinfields/status/2120931958880657415), 10:29 MT). This matches our recording-based summary.
+- **The CNCF's one-line version.** [@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120944161297944711) (12 Nov 11:17 MT): "five AI agents collaborating to shoot, trace, and publish a drone short film to GitHub using Argo CD and MCP."
+- **From a user of the stack.** Masaya Aoyama ([@amsy810](https://x.com/amsy810/status/2120931632840683628), 12 Nov 10:28 MT): "I use kagent and Agent Substrate, so it's exciting to see how quickly they're evolving!"
+
 ### Closing Remarks
 
 Program co-chairs, 10:24 MT. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1302806) · [Recording](https://www.youtube.com/watch?v=DqME_zHb67Q). *Based on the official recording.*
 
 Thanks to the program committee, track chairs, and staff, and an introduction of Annie Talvasto as an incoming co-chair. The next KubeCon + CloudNativeCon is in Barcelona.
+
+**From the community on X:** Kaslin Fields ([@kaslinfields](https://x.com/kaslinfields/status/2120933115946488102), 12 Nov 10:33 MT): "We say goodbye to Abby and hello to Annie, following the process of rotating co-chairs." The Kubernetes project's wrap-up ([@kubernetesio](https://x.com/kubernetesio/status/2121015819815514418), 12 Nov 16:02 MT) gives the next dates, "KubeCon EU (March 15-18, 2027, Barcelona, Spain)." Chris Aniszczyk ([@cra](https://x.com/cra/status/2121034574268629060), 12 Nov 17:17 MT) said registration is open and advised booking hotels early, because "the event is on track to be our largest yet!"
 
 ---
 ## Primary sessions
@@ -336,6 +349,8 @@ You still bring your own signer today; `tinycert` is a minimal one with Service-
 
 **For us:** where we copy CA bundles into namespaces (for example with a Flux-managed ConfigMap per tenant), ClusterTrustBundles are the replacement once our clusters reach 1.37. For workload identity, SPIRE remains our choice; Filesystem Delivery is worth watching as a way for SPIRE-issued credentials and Pod Certificates to look the same to applications.
 
+**From the community on X:** earlier in the week, Taahir Ahmed also spoke at Agent Substrate Day with Greg Castle "on proof of agent identity. Why can't agents just use OAuth or X.509? How does Substrate agent identity work today, and where is it headed?" ([@hguerreroo](https://x.com/hguerreroo/status/2119856811058528588), 9 Nov 11:17 MT; event site [atecon.dev](https://atecon.dev)). We have no notes from that talk. It is the agent-identity counterpart to the Pod Certificates work here.
+
 ### Four Resources, One Object: Surviving Gateway API After Ingress NGINX
 
 Sitesh Pattanaik (AWS EKS), 11:00–11:30 MT, Salt Palace Level 2, 255 BC. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1251205) · [Slides](https://sessionize.com/download/icbahyeb~T4sy3x772f1pL7KmSzib8r.pdf~four_resources_one_object_kubecon_na_2026.pdf). *Based on the uploaded slides (deck first posted on 12 November).*
@@ -361,6 +376,8 @@ The fix changes the unit of ownership. The platform team owns a kro ResourceGrap
 *Slide from "Four Resources, One Object," Sitesh Pattanaik.*
 
 **For us:** this failure happens through GitOps. Flux pruning a renamed HTTPRoute is exactly break 1. As we move off Ingress NGINX, do not let app teams write raw Envoy Gateway policies in the repositories Flux reconciles. Either compose route and policies as one object (a kro RGD or a Crossplane composition, per the table above) or add a CI check that every policy `targetRef` resolves in the rendered output. "Don't review policies. Review graphs."
+
+**From the community on X (a related talk, not this session):** John Howard and Mitch Connors presented v3 of their Gateway API implementation benchmarks on Tuesday, with a reproducible harness at [howardjohn/gateway-api-bench](https://github.com/howardjohn/gateway-api-bench) ([@hguerreroo](https://x.com/hguerreroo/status/2120225897185677582), 10 Nov 11:43 MT). The post comes from a Solo.io employee and quotes yearly cost estimates that favor Solo.io's agentgateway. Treat those numbers as a vendor claim, and use the harness to compare implementations on our own routes before we pick one.
 
 ### From Bearer Tokens to Mesh-Native mTLS: Modernizing Service Identity at Coinbase
 
@@ -404,7 +421,16 @@ The abstract describes a zero-trust architecture for agents that run arbitrary c
 
 **For us:** this pairs with the Conviction keynote, where Google listed gVisor among its CNCF Sandbox projects this week. If we offer agent sandboxes, gVisor through a RuntimeClass, provisioned by Flux, is the self-hostable path. Watch for the deck to see how the credential proxy works.
 
+**From the community on X:** we found no slides or recap of this talk. During the week, the speaker posted about an adjacent AWS option, [AWS Nitro Sandboxes on Amazon EKS](https://aws.amazon.com/blogs/containers/aws-nitro-sandboxes-hardware-enforced-workload-isolation-on-amazon-eks/) ([@csantanapr](https://x.com/csantanapr/status/2121034210760851616), 12 Nov 17:15 MT). He also warned that before benchmarking it, "inbound and outbound bandwidth default to 100 Mbps, and the inbound and outbound packet rate defaults to 1500 packets per second" ([@csantanapr](https://x.com/csantanapr/status/2120494218993160403), 11 Nov 05:29 MT). We do not know whether the talk covered Nitro Sandboxes, so the section stays abstract-only.
+
 ---
+
+## From the community on X
+
+We found no X posts with slides, recaps, or corrections for The Most Boring Talk at KubeCon, Built for What's Next, From Platform Catalog to Conversational Agent, Here be DRAgons, or the SPIFFE Broker API session. Those sections are unchanged. One booth demo from the last day is worth recording: Google showed "a demo running SIXTEEN MILLION AGENTS using Agent Substrate" ([@kaslinfields](https://x.com/kaslinfields/status/2120973558906253383), 12 Nov 13:14 MT). See Day 2's Agent Substrate section for context.
+
+---
+
 ## Sources
 
 Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on the evening of Thursday 12 November 2026. One backup deck was new that day: "Four Resources, One Object." Recordings were searched on the official CNCF YouTube channel the same evening; only the keynotes have been posted.

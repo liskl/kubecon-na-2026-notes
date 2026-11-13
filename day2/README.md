@@ -93,6 +93,13 @@ The 2027 lineup: Barcelona (15–18 March), Shanghai (12–13 May), Yokohama (25
 
 **For us:** if we run Crossplane, Modelplane is the same intent-over-placement model as our compositions, applied to model serving: the developer states the hardware and engine, and the control plane picks the cluster. Watch its CNCF application before building our own inference placement logic. gVisor and OpenShell entering the Sandbox add two more self-hostable options to next step 4.
 
+**From the community on X**
+
+- **Modelplane's "applying" is a public Sandbox application, not acceptance yet.** [@ModelplaneAI](https://x.com/ModelplaneAI/status/2120306076356845945) (10 Nov 17:02 MT): "Today, Upbound submitted Modelplane for CNCF Sandbox consideration. Six releases, new integrations and community contributions in five months." ([blog post](https://modelplane.ai/blog/five-months-of-modelplane)). Bassam Tabbara ([@bassamtabbara](https://x.com/bassamtabbara/status/2121046596033126853), 12 Nov 18:04 MT) linked the [repository](https://github.com/modelplaneai/modelplane) and the application issue, [cncf/sandbox#550](https://github.com/cncf/sandbox/issues/550), which was opened on 9 Nov and was still open on 12 Nov.
+- **KubeRay.** [@anyscalecompute](https://x.com/anyscalecompute/status/2120187230996283660) (10 Nov 09:10 MT): "KubeRay is joining the @CloudNativeFdn."
+- **Graduations and incubation, confirmed by CNCF posts.** KubeVirt ([@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120238826840809552), 10 Nov 12:35 MT, [announcement](https://www.cncf.io/announcements/2026/11/10/cloud-native-computing-foundation-announces-kubevirt-graduation/)). NATS ([@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120564849138884655), 11 Nov 10:10 MT), described as a communication layer "for more than 2,000 organizations" ([announcement](https://www.cncf.io/announcements/2026/11/10/cncf-announces-nats-graduation-solidifying-a-production-ready-foundation-for-messaging-across-cloud-and-edge/)). The TOC vote accepting CloudNativePG as incubating ([@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120600456091054392), 11 Nov 12:32 MT).
+- **New research released the same morning.** [@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120218199371211182) (10 Nov 11:13 MT) announced the Q3 2026 CNCF Technology Radar with SlashData: "54% of teams managing their own tooling use hybrid AI workflows." ([announcement](https://www.cncf.io/announcements/2026/11/10/cncf-and-slashdata-report-finds-platform-engineering-strategies-are-shaping-ai-infrastructure-adoption/)). We have not read the full report.
+
 ### Agent Substrate: Open Layers for Agentic Systems
 
 Jaana Dogan, Dmitry Berkovich, and Tim Hockin (Google), Eitan Yarmush (Solo.io), Luiz Scheidegger (Anthropic), 09:33 MT. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1367757) · [Recording](https://www.youtube.com/watch?v=CC872qQ-eNQ). *Based on the official recording.*
@@ -114,6 +121,13 @@ flowchart LR
 ```
 
 *Diagram drawn from the slide shown in the recording.*
+
+**From the community on X**
+
+- **The live demo's scale.** Kaslin Fields ([@kaslinfields](https://x.com/kaslinfields/status/2120198740489457802), 10 Nov 09:55 MT), posting live from the keynote, described the QR-code agents and wrote: "They got to 2.5k agents during their short talk!" She said the demo would stay up all week. In the recording, the presenters say "a couple thousand of you have signed up." By Thursday the Google booth was showing a much bigger run: "a demo running SIXTEEN MILLION AGENTS using Agent Substrate" ([@kaslinfields](https://x.com/kaslinfields/status/2120973558906253383), 12 Nov 13:14 MT; also [@boredabdel](https://x.com/boredabdel/status/2120974085719281955), 12 Nov 13:16 MT). That is a booth demo, not a published benchmark.
+- **A second model provider wired in.** Jaana Dogan, one of the keynote speakers ([@rakyll](https://x.com/rakyll/status/2120926160704200950), 12 Nov 10:06 MT): "Managed Agents in Gemini API is now supporting Agent Substrate. We enable running Managed Agent environments as Agent Substrate actors." That is the Gemini counterpart to the Claude Managed Agents bridge shown in this keynote.
+- **Announcement timing.** [@rseroter](https://x.com/rseroter/status/2118391337213161746) (5 Nov 10:13 MT) linked Google's [donation post](https://cloud.google.com/blog/products/containers-kubernetes/open-infrastructure-for-autonomous-agents-comes-to-cncf) the week before the conference. It covers Agent Substrate, gVisor, and OpenRL going to the CNCF, and Agent Substrate reaching 1.0 and GA on GKE.
+- **A skeptical read.** [@AIGryffindor](https://x.com/AIGryffindor/status/2118918246657335396) (6 Nov 21:07 MT): "this reads like google repackaging gvisor as 'agent substrate' to get cncf attention. same isolation tech, new label." The keynote's architecture answers part of this, because Substrate is the scheduling, suspend, and resume layer and gVisor is one isolation runtime under it. Carlos Sanchez's Day 3 deck draws the same line between lifecycle and runtime. Even so, evaluate Substrate on lifecycle features, not as a new isolation boundary.
 
 ### Engineering Kubernetes for the Next Era of Workloads
 
@@ -146,17 +160,30 @@ The OpenShell demo:
 - **Stronger walls when needed.** By default the sandboxes share the host kernel; for stronger isolation, OpenShell can run each sandbox with its own kernel.
 - **Prop credentials.** Agents get keys that look real but open nothing; OpenShell swaps in the real credential on the way out. A leaked key is a prop.
 
+**From the community on X**
+
+- **Same message from three directions.** Red Hat's post ([@RedHat](https://x.com/RedHat/status/2120230069134070193), 10 Nov 12:00 MT) links its blog, ["With great power comes great sandboxing"](https://www.redhat.com/en/blog/great-power-comes-great-sandboxing), and says OpenShell is now a CNCF Sandbox project "for policy-governed agent boundaries." NVIDIA ([@NVIDIAAI](https://x.com/NVIDIAAI/status/2120258334079263059), 10 Nov 13:52 MT) asked for input on "how AI agents access data, use credentials, and execute code." Jonathan Bryce of the CNCF ([@jbryce](https://x.com/jbryce/status/2120543775659532378), 11 Nov 08:46 MT) wrote: "Agents need real access to do useful work, and the infrastructure needs to enforce the boundaries. OpenShell puts those controls outside the model and the harness." He also linked the [CNCF project page](https://www.cncf.io/projects/openshell/) ([@jbryce](https://x.com/jbryce/status/2120543870870225049)).
+- **Admission policy alongside OpenShell.** [@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120899179740283233) (12 Nov 08:19 MT) pointed to a guide by Jim Bugwadia (Nirmata) on "pairing OpenShell with Kyverno admission controls to enforce least privilege without bringing in a custom scheduler." For us, that is the cluster-side half of the pattern. OpenShell polices what the agent does at runtime, and admission policy, delivered by Flux like any other policy, polices what the agent's Pod is allowed to be.
+- **The project is not brand new.** [@CTOAdvisor](https://x.com/CTOAdvisor/status/2120272372469260546) (10 Nov 14:48 MT): "NVIDIA initially announced it as part of Nemoclaw back in March." What is new this week is the move to neutral governance.
+
 ### Pods in the Wild: Reinforcement Learning on Kubernetes with OpenRL
 
 Sunil Arora (Google), Ravin Kumar (Google DeepMind). [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1349401) · [Recording](https://www.youtube.com/watch?v=KmqJeSmQZ_0). *Based on the official recording.*
 
 OpenRL is an open-source post-training service installed with a single manifest. It splits an RL loop into trainer and sampler steps scheduled onto a shared accelerator pool, partitioned with DRA, and exposes Tinker-compatible primitives. It is now a CNCF Sandbox project. Only relevant if we fine-tune models in-house.
 
+**From the community on X:** [@kaslinfields](https://x.com/kaslinfields/status/2120205241895571463) (10 Nov 10:21 MT) noted that the live OpenRL demo failed and the speaker "had to switch to the backup video." The recording agrees: "I'm going to switch to the backup recording for now."
+
 ### The Harness Is the New Runtime
 
 Idit Levine and Keith Babo (Solo.io). [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1295993) · [Recording](https://www.youtube.com/watch?v=euMtYE3ALoA). *Based on the official recording.*
 
 Every session in a coding harness such as Claude Code or Codex is an "actor," and many reach production data through MCP tools and skills. Asking end users to approve prompts delegates security to people who will click yes. The building blocks are a sandbox per actor plus a gateway (agentgateway) for all agentic traffic. They announced an "agent desktop" project that brings the same inventory and gateway to laptops. They also said kagent 1.0 is now rebased on Agent Substrate.
+
+**From the community on X**
+
+- **Commercial packaging.** [@hguerreroo](https://x.com/hguerreroo/status/2120273831365325034) (10 Nov 14:54 MT; the author is a Solo.io employee) said Solo.io announced GA of enterprise releases of kagent and Agent Substrate from the keynote stage: "Enterprise adds access control, agent tracing + evals, air-gapped installs, and maintainer support." ([Solo.io blog](https://www.solo.io/blog/announcing-kagent-1-0-ga)). This is a vendor announcement.
+- **kagent 1.0 links.** Ivan Nardini ([@ivnardini](https://x.com/ivnardini/status/2120925341044912340), 12 Nov 10:03 MT) said kagent agents "run on Agent Substrate, sleep when idle, and now any MCP client can discover and call them." He linked the [v1.0.0 release](https://github.com/kagent-dev/kagent/releases/tag/v1.0.0) and the ["agents via MCP" docs](https://kagent.dev/docs/kagent/latest/examples/agents-via-mcp/) ([@ivnardini](https://x.com/ivnardini/status/2120925788233236775)). If we ever expose platform agents, MCP discovery is how Backstage's own MCP actions could call them.
 
 ### One Kubernetes, Different Environments: Closing the Portability Gaps
 
@@ -175,6 +202,8 @@ A deliberately open-ended talk.
 - **Authorization.** Identity is not authorization. That takes a content- and intent-aware egress proxy that can mint just-in-time credentials, with hybrid rule-based plus contextual policy.
 - **Isolation.** "Containers don't contain," so agents also need gVisor, Kata, Firecracker, or Agent Sandbox.
 - **The ask.** Move from human-in-the-loop approvals to human-in-the-loop governance.
+
+**From the community on X:** Kaslin Fields ([@kaslinfields](https://x.com/kaslinfields/status/2120212195426590842), 10 Nov 10:49 MT) summarized the talk's thesis as "Don't constrain the agent. Build a better boundary." We did not find that line in the audio transcript; it may have been on a slide.
 
 ### From Pod to Actuator: Physical AI and the Future of Kubernetes
 
@@ -402,6 +431,8 @@ From the keynotes: Solo.io announced that kagent 1.0 is rebased on Agent Substra
 - **Try placeholder credentials.** Of the keynote ideas, the one we can most easily copy is giving the agent a placeholder that a proxy swaps for the real secret on egress, so a leaked key is useless.
 - **Watch for the slides or recording** before choosing a sandbox layer.
 - **Risk:** sandboxing that relies on prompts or on the agent's judgment is a sign on the wall, in Red Hat's phrase. Only a policy enforced outside the agent counts.
+
+**From the community on X:** no slides or recap posts for this breakout turned up on X. The kagent 1.0 release and the enterprise GA, both posted this week, are covered under "The Harness Is the New Runtime" above.
 
 ---
 

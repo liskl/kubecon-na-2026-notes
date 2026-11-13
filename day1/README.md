@@ -75,6 +75,8 @@ Flux started in 2016 as one of the first tools to put Git at the center of Kuber
 - **Try:** when the recording or slides land, compare the new Toolkit / Operator features with how we install, upgrade, and expose Flux today, before inventing a parallel agent-to-cluster path.
 - **Risk:** "wiring Flux into AI agents" is only safe if agents cannot apply around review. The later FluxCon backup on guardrails (see below) is the necessary counterpart, and it also had no slides posted yet.
 
+**From the community on X:** KubeFM ([@K8sFM](https://x.com/K8sFM/status/2120187548127384001), 10 Nov 09:11 MT) posted a clip from an [interview](https://kube.fm/flux-the-rewrite) in which, per the post, "Stephan" (Stefan Prodan) explains that "FluxCD v1 couldn't keep up with growing adoption. He led the rewrite to Flux v2." It is useful background for the talk's look back, but it adds no new detail on the roadmap. The section stays abstract-based.
+
 ---
 
 ### From Geological Layers to NFS: Migrating a Decade of Backstage with AI
@@ -575,6 +577,15 @@ Arka Saha, 12:34–12:39 MT, Hyatt Regency Level 4, Regency Ballroom B–D. [Ses
 
 The etcd-operator has been refactored onto custom controllers, and the new version can automatically replace failed cluster members. The abstract promises milestones, the current feature set, and the user experience. Worth a look at the recording if we operate etcd ourselves; there is not enough in the abstract to act on yet.
 
+**From the community on X:** [@kubernetesio](https://x.com/kubernetesio/status/2118902008081985916) (6 Nov 20:03 MT) linked the project's [etcd-operator v0.3.0 announcement](https://etcd.io/blog/2026/announcing-etcd-operator-v0.3.0/), which fills in what the abstract only hints at:
+
+- The operator moved from a StatefulSet to a custom controller.
+- v0.3.0 clusters self-heal after losing a member and after CORRUPT and NOSPACE alarms.
+- After losing quorum, a cluster can be restored with intervention.
+- Health checks and status reporting are expanded.
+
+This is the project's release post, not the talk's material, so the section stays labeled abstract-based.
+
 ### Who Owns This? Automating Backstage Catalog Ownership at Scale
 
 Mateusz Wiszniewski and Katarzyna Rak (Stepstone), 13:30–13:55 MT, Salt Palace Level 2, 255 EF. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1267923) · [Slides](https://sessionize.com/download/mdapget~wnuL5KfpGDg2BxXVmZKqir.pdf~backstagecon-north-america-2026-who-own-this.pdf) · [Recording](https://www.youtube.com/watch?v=g_827p1pqrY). *Based on the slides plus the official recording.*
@@ -687,6 +698,15 @@ Lab-measured on SPIRE v1.15.5, K3s v1.33.5, and OPA 1.10, with multi-hour outage
 ![Five takeaways for a SPIRE edge fleet, including TPM bootstrap and sizing lifetimes from the outage](images/spire-edge-p09.png)
 
 *Slide from "Bootstrapping Edge Nodes When the SPIRE Server Is 200ms Away and Sometimes Gone," Manan Chawda.*
+
+---
+
+## From the community on X
+
+Searches on X for FluxCon and BackstageCon (9–12 Nov) mostly returned booth and schedule promotion. Two items add to these notes:
+
+- **Two BackstageCon recordings we did not cover.** [@NaveenS16](https://x.com/NaveenS16/status/2120878154709455058) (12 Nov 06:55 MT) and [@NaveenS16](https://x.com/NaveenS16/status/2120874313758953792) (12 Nov 06:40 MT) shared two official CNCF recordings: ["Treating Backstage Like a Product: Observability with OpenTelemetry"](https://youtu.be/x6pAupyoZGQ) (Ekansh Gupta, Bindplane) and ["Context Is the New Code: How Spotify Runs Agentic Engineering at Scale"](https://youtu.be/fwypmxVg96U) (Joe Combopiano, Spotify). They were not on our schedule and are not summarized here. The first one maps directly onto treating our Backstage instance as a product with its own telemetry.
+- **The Flux + Karpenter combination, from a practitioner.** Tobias Schmidt ([@tpschmidt_](https://x.com/tpschmidt_/status/2119700519107334566), 9 Nov 00:56 MT): "EKS, Karpenter and FluxCD changed my mind about Kubernetes on AWS." This is one person's opinion, not a case study.
 
 ---
 

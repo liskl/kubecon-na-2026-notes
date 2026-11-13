@@ -4,7 +4,7 @@ Session notes from the second main-conference day in Salt Lake City, written for
 
 The takeaways and recommended next steps assume we already run Backstage and Flux in production. They are about extending, hardening, or improving that setup, not about adopting either tool.
 
-Times are Mountain Time, labeled MT, and come from the live Sessionize schedule, re-fetched on Wednesday 11 November 2026. Slide links are the official Sessionize "Presentation Slides" uploads from that same pull. Where a deck existed, the notes below are taken from that deck. Where it did not, the notes are labeled as based only on the official abstract. The itinerary keeps the whole Crossplane ContribFest block (11:00–12:20); the 11:50 RISC-V backup is the alternative to that entire block.
+Times are Mountain Time, labeled MT, and come from the live Sessionize schedule, re-fetched on Wednesday 11 November 2026. Slide links are the official Sessionize "Presentation Slides" uploads from that same pull. Where a deck existed, the notes below are taken from that deck. Where it did not, the notes are labeled as based only on the official abstract. One exception: the Running Secure Agents deck was published by the speaker on his own site and linked from X on 12 November, so that section is labeled accordingly. The itinerary keeps the whole Crossplane ContribFest block (11:00–12:20); the 11:50 RISC-V backup is the alternative to that entire block.
 
 **Recordings.** As of the evening of 11 November 2026, CNCF has posted the Wednesday keynotes on its YouTube channel, but none of the Wednesday breakout sessions below. The keynote section is based on those official recordings. YouTube captions were rate-limited, so the speech was transcribed automatically. Quotes are kept short, and product names and numbers were checked against the slides on screen where possible. A YouTube video titled "Crossplane - The Cloud Native Framework for Platform Engineering" does exist, but it was uploaded in April 2026 from KubeCon Europe, so it is not this session and is not used here.
 
@@ -37,7 +37,7 @@ flowchart TB
 
 **CI is the safety net for machine-written change.** The Robust CI talk is about a GitOps repo serving hundreds of clusters, with pull requests from humans, AI, and automation. Its answer is a single Go binary that runs deterministic validation, including CEL rules from CRD schemas and ported API-server validation, before review. That pairs with Tuesday's Flux MCP and schema-catalog work: ground the agent, then verify what it wrote.
 
-**Agents and GPUs need their own scheduling and isolation.** Adobe's Running Secure Agents abstract puts every agent in an Agent Sandbox with lifecycle, limits, and policy. ScaleOps' keynote described agents as idle most of the time with CPU spikes. The Quota Isn't Enough abstract argues that GPU quota alone no longer predicts whether a large job runs; NVLink domains and rack topology do. GPU Observability with eBPF showed that held GPU memory and GPU activity are not the same thing.
+**Agents and GPUs need their own scheduling and isolation.** Adobe's Running Secure Agents deck, shared on X after the talk, runs one browser-agent workload on five sandbox backends and treats lifecycle, runtime, and policy as separate decisions. ScaleOps' keynote described agents as idle most of the time with CPU spikes. The Quota Isn't Enough abstract argues that GPU quota alone no longer predicts whether a large job runs; NVLink domains and rack topology do. GPU Observability with eBPF showed that held GPU memory and GPU activity are not the same thing.
 
 ---
 
@@ -68,6 +68,8 @@ Condensed notes, in stage order. Several keynotes were sponsor talks; only their
 Jonathan Bryce (CNCF), 09:00 MT. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1372841) · [Recording](https://www.youtube.com/watch?v=Cdj5SiivFIk). *Based on the official recording.*
 
 Our systems were built for human speed and increasingly run at agent speed. His example was Wikimedia, where agent traffic does not follow the human patterns that caching was built for. He compared the change to mobile networks after the smartphone. CNCF named Meta its latest case-study winner and now has 12 published reference architectures; the newest is from The New York Times.
+
+**From the community on X:** Chris Aniszczyk ([@cra](https://x.com/cra/status/2120589262827794620), 11 Nov 11:47 MT) linked the new [CNCF Reference Architectures site](https://endusers.cncf.io/architectures/), which shows "how companies are actually stitching together CNCF projects in production." It is a quick way to compare our Backstage + Flux layout with other end users' setups.
 
 ### Beyond End User: CAP and the Evolution of Open Source at CVS Health
 
@@ -105,11 +107,18 @@ Lucy Sweet (Anthropic). [Session](https://events.linuxfoundation.org/kubecon-clo
 
 Anthropic is donating 3,000 Claude access codes for CNCF maintainers, on top of its existing open-source program.
 
+**From the community on X:** Chris Aniszczyk ([@cra](https://x.com/cra/status/2120559216561909970), 11 Nov 09:48 MT) posted the sign-up link for maintainers, [claude.ai/cncf](https://claude.ai/cncf). Kaslin Fields ([@kaslinfields](https://x.com/kaslinfields/status/2120560570726510909), 11 Nov 09:53 MT) described the donation as "3k codes for Claude Ultra."
+
 ### Code, Containers, and Clusters: The Next Chapter of Apple's Container Framework
 
 Kathryn Baldauf and Vince Prignano (Apple). [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1353217) · [Recording](https://www.youtube.com/watch?v=mo3QtBOTP8A). *Based on the official recording.*
 
 Apple bootstraps clusters declaratively with Cluster API and ships a signed, continuously enforced bill of materials for the whole system. Apple `container`, the open-source Swift tool, runs each Linux container in its own lightweight VM on Apple silicon. Container Machines are persistent Linux environments that share your Mac user and home directory. A new `container cluster create` brings up a real multi-node Kubernetes cluster that can use locally built images directly; the demo applied a Cilium network policy from a production config. Useful for local testing on Macs.
+
+**From the community on X**
+
+- Kaslin Fields ([@kaslinfields](https://x.com/kaslinfields/status/2120561350690918423), 11 Nov 09:56 MT) summarized the three features: Linux containers, "the container machine for isolation, and new container clusters, which are Kubernetes built via Kubeadm."
+- Chris Maher ([@defilan](https://x.com/defilan/status/2120573982286201331), 11 Nov 10:46 MT) tried the experimental Kubernetes plugin the same morning with LLMKube on a MacBook Pro: "The operator installed in 26 seconds." That is one quick first-hand try, but it suggests local clusters on Apple silicon are already usable for trying out Flux changes on a laptop.
 
 ### Autonomous Orchestration for AI Infrastructure
 
@@ -150,6 +159,11 @@ flowchart LR
 
 *Diagram drawn from the recording. Meta uses Kargo and Argo CD; for us the GitOps controller is Flux.*
 
+**From the community on X**
+
+- **It won the CNCF End User Case Study Contest.** [@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120549660553363652) (11 Nov 09:10 MT): "Using Argo CD and Kargo, their team cut routine rollouts across 100 AI clusters from four hours to minutes." The written [Meta case study](https://www.cncf.io/case-studies/meta/) was linked the same morning ([@CloudNativeFdn](https://x.com/CloudNativeFdn/status/2120566883305013580), 11 Nov 10:18 MT). Read it before designing our `pipeline.yaml` equivalent in Backstage.
+- **Upstream plans.** The Argo project ([@argoproj](https://x.com/argoproj/status/2120943235312800127), 12 Nov 11:14 MT) added: "they're exploring upstream contributions."
+
 ### Production AI on Kubernetes: Built to Scale with Oracle Cloud
 
 Lorenzo Biava (LiveKit) and Jeff Hoffman (Oracle). [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1295999) · [Recording](https://www.youtube.com/watch?v=6kJYb9Hq6Lg). *Based on the official recording.*
@@ -167,6 +181,8 @@ Inference is HTTP, so the proxy you already run can route on the request body's 
 Viv Keswani (Uber), 10:32 MT. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1368714) · [Recording](https://www.youtube.com/watch?v=OCvw8PLOudY). *Based on the official recording.*
 
 Uber is open-sourcing Michelangelo, its Kubernetes-based ML and AI platform. He said it runs 5,300+ production models and about 45 million peak predictions per second.
+
+**From the community on X:** Diana Zawadzki ([@zawadzki_diana](https://x.com/zawadzki_diana/status/2120607575544861101), 11 Nov 13:00 MT) posted the repository: [github.com/michelangelo-ai/michelangelo](https://github.com/michelangelo-ai/michelangelo).
 
 ---
 
@@ -336,17 +352,41 @@ With GB200 and GB300 systems, fragmentation widens the gap between "I have GPU q
 
 - **Time:** 17:00–17:30 MT · Salt Palace Level 1, Grand Ballroom GI
 - **Speaker:** Carlos Sanchez (Adobe)
-- **Session:** [Running Secure Agents at Scale](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1247666)
-- *Based on the session abstract (no slides or recording posted yet).*
+- **Session:** [Running Secure Agents at Scale](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1247666) · [Slides](https://presentations.csanchez.org/2026-11_kubecon_na/) · [Demo repo](https://github.com/ai-ecoverse/playwright-k8s-sandbox)
+- *Based on the speaker's slides, shared on X ([@csanchez](https://x.com/csanchez/status/2120937266759565783), 12 Nov 10:50 MT: "The slides from my talk yesterday where I covered Agent Sandbox, Substrate and KARS and how we use #kubernetes to run agents in one of our products"). No recording posted yet. Upgraded from abstract-only on 12 November.*
 
-Secure, scalable agents need "more than a prompt and a container image" — they need a deliberate execution model for multi-tenancy, noisy-neighbor risk, tool access, and data boundaries. Adobe runs agents on the CNCF Agent Sandbox project: a sandboxed runtime that manages the full lifecycle (provision, execute, observe, tear down) while isolating workloads from the rest of the platform. Sandboxes enforce resource limits, reduce blast radius, and give operators a consistent place to apply policy. Adobe added optimizations so development teams can run agents without understanding the sandboxing mechanism or the complexity of single-tenant agent execution. The talk promises the problems they hit with real customers and what they would do differently.
+Secure, scalable agents need "more than a prompt and a container image." They need a deliberate execution model for multi-tenancy, noisy-neighbor risk, tool access, and data boundaries.
+
+**The production use case.** Adobe Experience Manager runs agents that import sites and change designs. Each user gets one Pod with its own persistent storage, there are no credentials in the agent, and Playwright drives the browser. The problems they hit: isolation, several Pods mounting one persistent volume during rollouts, image size, and resource consumption. The framing slide: "Agent needs a browser — What else did you just give it? Network access. Filesystem access. Credentials."
+
+**Three separate decisions.** The deck splits the choice into **lifecycle** (who creates, reuses, suspends, and deletes the environment), **runtime** (what separates the workload from the host kernel and other workloads), and **policy** (who may connect, and what the browser may reach). Its speaker notes add that "a warm pool changes provisioning latency, not the isolation mechanism," and that a RuntimeClass selects a configured runtime without installing one.
+
+**Five implementations, one Playwright workload,** compared behind a shared proxy:
+
+| Backend | Unit / provisioning | Runtimes supported | State after lifecycle action |
+|---|---|---|---|
+| agent-sandbox | Claim a warm sandbox | gVisor / Kata / default | Recreate: fresh browser |
+| OpenShell | Claim from OpenShell pool | Docker / Podman / K8s / microVM | Recreate: fresh browser |
+| Agent Substrate | Actor on a worker | gVisor / Kata + Cloud Hypervisor | Explicit memory suspend/resume |
+| Azure KARS | CR; dedicated namespace | runc / Kata + AMD SEV-SNP | Recreate: fresh browser |
+| isola | Sandbox CR; on demand | gVisor | Recreate: fresh browser |
+
+*Table reproduced from the deck. Its version references are agent-sandbox v1.0.10, OpenShell v0.1.8, Substrate v1.0.0, KARS v0.1.26, and isola v0.8.1.*
+
+- **agent-sandbox, the main walkthrough.** `SandboxTemplate` holds the Pod blueprint, `SandboxWarmPool` keeps prepared capacity (the demo pool has three replicas), `SandboxClaim` adopts a sandbox, and `Sandbox` manages the Pod. A warm claim gets an already running browser, but as a new logical session, not a restored one. Two slides worth copying: "Ready means ready to use" (the claim waits for `Ready=True` plus Pod IPs, because "Pod phase Running is not application readiness"), and "A user-controlled label is not tenant authentication" (the demo proxy routes callers by a Pod label). Native Playwright WebSocket (port 9222) and MCP (port 9223) sit behind one proxy port (9000), so client code stays plain `chromium.connect()`.
+- **Agent Substrate.** Actors live in Substrate's own API, backed by PostgreSQL, not one Kubernetes object per idle actor. The October test run saw a durable memory snapshot and a successful browser navigation after resume, but "Snapshot support matters only if the application resumes correctly."
+- **KARS.** A namespace per sandbox with enforced egress, aimed at personal agents such as OpenClaw. Its forward proxy rejects DNS answers that resolve to private addresses, and adding a NetworkPolicy did not override that.
+- **Honest caveats.** The demo used the cluster-default runtime, Chromium with `--no-sandbox`, and network-policy management set to `Unmanaged`: "This demonstrates the integration, not hardened hostile-code isolation."
+
+**Choose by constraint**, per the deck: fast prepared browsers → agent-sandbox; an OpenShell-specific pool or image → OpenShell; explicit memory suspend/resume → Substrate; OpenClaw-style agents → KARS. The closing takeaways: "Compare lifecycle, runtime, and policy separately," "agent-sandbox is simple, warm pools are easy ways of improving performance," and "Substrate adds memory suspend/resume, with more operational complexity."
 
 **Key takeaways**
 
-- **Make the sandbox a platform feature, not a per-team decision.** Adobe's point is that developers should not need to understand the isolation mechanism. For us, that means an agent workload type offered through Backstage and delivered by Flux, with sandboxing, limits, and policy on by default.
-- **Single-tenant execution per agent run** is the safe default for anything that touches regulated data, even though it costs more. Day 2's keynotes (Agent Substrate, OpenShell) are about making that affordable.
-- **Watch for the recording** for the "what we'd do differently" list. That is the part an abstract cannot give us.
-- **Risk:** without slides we do not know which Agent Sandbox version, isolation runtime, or network policy model Adobe uses.
+- **Make the sandbox a platform feature, not a per-team decision.** Adobe's point is that developers should not need to understand the isolation mechanism. For us, that means an agent workload type offered through a Backstage template and delivered by Flux. Lifecycle, runtime, and policy become three explicit choices with safe defaults, not one "sandboxed: true" flag.
+- **Start with agent-sandbox plus a warm pool.** Templates, warm pools, and claims are ordinary Kubernetes objects that Flux can reconcile like anything else. Consider Substrate only if a workload needs memory suspend/resume, and test that the application really resumes.
+- **Health-check readiness, not Pod phase.** Point Flux health checks for agent workloads at the sandbox's `Ready` condition rather than at the Pod, which is the deck's "Running is not readiness" lesson.
+- **Do not route tenants by labels.** Use workload identity, SPIFFE/SPIRE in our case, for who may connect to a sandbox. A Pod label is routing, not authentication.
+- **Risk:** the demo manifests are deliberately not hardened. If we copy them, set `runtimeClassName` and network policy explicitly. The deck also gives no production numbers for Adobe, and the "what we'd do differently" story may only be in the recording.
 
 ---
 
@@ -451,6 +491,12 @@ Security model:
 
 ---
 
+## From the community on X
+
+We found no recap posts, slides, or corrections on X for the other Day 3 sessions in these notes, so those sections are unchanged. The one upgrade from X is the Running Secure Agents deck above.
+
+---
+
 ## Sources
 
 Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wednesday 11 November 2026. Two backup deck URLs had changed since the original schedule was built ("Death by a Thousand Patches" and "Robust CI as a Safety Net"); the links above are the current ones. Recordings were searched on the official CNCF YouTube channel the same day; only the keynotes have been posted.
@@ -476,6 +522,7 @@ Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wedne
 
 - Crossplane Contribfest - Start Your Journey to Crossplane Function Maintainer
 - Green Dashboards, Broken Clusters: Taming Stale Watches in Kubernetes Operators
+- Running Secure Agents at Scale (the speaker's own published deck, linked from X on 12 November; not a Sessionize upload)
 
 **Backups**
 
@@ -491,7 +538,6 @@ Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wedne
 
 - Crossplane - The Cloud Native Framework for Platform Engineering
 - Quota Isn't Enough: Topology Aware Scheduling on Modern GPU Clusters
-- Running Secure Agents at Scale
 
 ---
 

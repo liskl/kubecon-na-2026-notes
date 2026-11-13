@@ -6,7 +6,7 @@ The takeaways and recommended next steps assume we already run Backstage and Flu
 
 Times are Mountain Time, labeled MT, and come from the live Sessionize schedule, re-fetched on Wednesday 11 November 2026. Slide links are the official Sessionize "Presentation Slides" uploads from that same pull. Where a deck existed, the notes below are taken from that deck. Where it did not, the notes are labeled as based only on the official abstract.
 
-**Recordings.** As of 11 November 2026, CNCF has posted the Tuesday keynotes on its YouTube channel, but none of the Tuesday breakout sessions below. The keynote section is based on those official recordings. YouTube captions were rate-limited, so the speech was transcribed automatically. Quotes are kept short, and product names and numbers were checked against the slides on screen where possible. The 09:00 "Welcome + Opening Remarks" segment has not been posted, so it is not covered.
+**Recordings.** As of 11 November 2026, CNCF has posted the Tuesday keynotes on its YouTube channel, but none of the Tuesday breakout sessions below. The keynote section is based on those official recordings. YouTube captions were rate-limited, so the speech was transcribed automatically. Quotes are kept short, and product names and numbers were checked against the slides on screen where possible. The 09:00 "Welcome + Opening Remarks" segment was posted later and was added to these notes on 12 November 2026.
 
 ---
 
@@ -29,7 +29,7 @@ flowchart TB
   K --> K1["Watch-cache lag, informer lag, write bursts, packing"]
 ```
 
-**Agents need a substrate, not just a pod.** The keynote stage was dominated by agent infrastructure. Google, Solo.io, and Anthropic presented Agent Substrate (now a CNCF Sandbox project, announced as 1.0) as sandboxes packed onto ordinary Kubernetes, with suspend-to-snapshot and sub-second resume. Red Hat showed OpenShell policies as "bolts, not signs." Google's identity keynote argued that replicas sharing one service account make agent incidents impossible to attribute, and that each agent session needs its own short-lived identity. Solo.io announced kagent 1.0, rebased on Agent Substrate. The breakouts on kagent sandboxing and Agent Substrate itself had no slides posted, but the keynotes cover the core claims.
+**Agents need a substrate, not just a pod.** The keynote stage was dominated by agent infrastructure. Google, Solo.io, and Anthropic presented Agent Substrate (now a CNCF Sandbox project, announced as 1.0) as sandboxes packed onto ordinary Kubernetes, with suspend-to-snapshot and sub-second resume. Red Hat showed OpenShell policies as "bolts, not signs." Google's identity keynote argued that replicas sharing one service account make agent incidents impossible to attribute, and that each agent session needs its own short-lived identity. Solo.io announced kagent 1.0, rebased on Agent Substrate. The opening remarks added gVisor, OpenShell, and KubeRay to the list of new Sandbox projects. The breakouts on kagent sandboxing and Agent Substrate itself had no slides posted, but the keynotes cover the core claims.
 
 **Every controller that holds credentials is a deputy.** Justin O'Leary's talk showed four cloud operators that will act on a target named by any namespace user, using the operator's own cloud credentials. His slide on who the "namespace user" is lists CI/CD and GitOps bots alongside developers. That is the same shape as any GitOps controller that applies tenant manifests with a powerful service account. The fix he proposes is generic: verify the caller, authorize the reference, and fail closed.
 
@@ -58,10 +58,40 @@ flowchart TB
 ## Keynotes
 
 - **Time:** 09:00–10:46 MT · Salt Palace Level 1, Hall DE
-- **Recording:** each keynote below links to its official CNCF YouTube upload. The opening remarks are not posted.
+- **Recording:** each keynote below links to its official CNCF YouTube upload. The opening remarks recording was added on 12 November 2026.
 - *Based on the official recordings (keynotes have no slide uploads).*
 
 Condensed notes, in stage order. Several keynotes were sponsor talks; only their technical claims are kept here.
+
+### Welcome + Opening Remarks
+
+Chris Aniszczyk and Jonathan Bryce (CNCF), with Rita Zhang (CoreWeave), Kevin Cochrane (Vultr), Robert Nishihara (Anyscale), and Bassam Tabbara (Upbound), plus a recorded video from Justin Boitano (NVIDIA), 09:00 MT. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1302801) · [Recording](https://www.youtube.com/watch?v=tF4GE8qn92I). *Based on the official recording, added on 12 November 2026 after CNCF posted it. Passages where the audio was unclear are left out; project names were checked against the slides on screen.*
+
+**Community numbers.** 82,000 people attended CNCF events this year. Contributors grew about 17% to more than 350,000, and CNCF-commissioned research counts more than 21 million cloud native developers, up about 36%. Bryce said inference traffic across providers grew about 4x in the eight months since personal agents appeared, and that network traffic is growing faster still. The Kubernetes AI Conformance program, launched about a year ago, has more than doubled its participating organizations. There are two new certifications: Certified Kubernetes Inference Engineer and Kubernetes AI Associate.
+
+**Project moves this year.** Graduated: Buildpacks, Karmada, Kubeflow, KubeVirt, Kyverno, OpenTelemetry, and NATS. Incubating: CloudNativePG, Confidential Containers, Fluid, HAMi, K8GB, Meshery, Microcks, Open Cluster Management, and Tekton. The new Sandbox projects slide included gVisor, OpenShell, KubeRay, llm-d, KAI Scheduler, OpenRL, Velero, and agentregistry. The keynote grouped this year's project work around two problems: constrained resources, and control and security for more autonomous systems.
+
+- **CoreWeave** (Rita Zhang) contributes fair-scheduling work for scarce GPUs to Kueue and correctness fixes to vLLM, Dynamo, and Grove. NVIDIA's three-year, $4 million investment in GPU CI capacity for CNCF projects runs on CoreWeave, and Kubernetes already uses it.
+- **Vultr** (Kevin Cochrane) is expanding its open-source credit program to maintainers of CNCF and other foundations' projects.
+- **KubeRay** (Robert Nishihara) is joining the CNCF. His framing: Kubernetes manages the cluster, and Ray is the runtime inside one large, tightly coupled workload, such as reinforcement learning with training, inference, and sandboxes exchanging weights and trajectories.
+- **OpenShell** (NVIDIA, by video) was accepted as a CNCF Sandbox project. "We can't simply ask agents to follow the rules. The infrastructure must enforce them": which files an agent can read or change, which services it can reach, and which commands it can run, enforced outside the agent.
+
+**Modelplane, built on Crossplane.** The Crossplane news of the week came from Bassam Tabbara, Upbound's founder. Modelplane is "the fleet-wide control plane for AI inference," built on Crossplane and its provider ecosystem, for running models across a heterogeneous fleet of clusters, clouds, GPU vendors, and serving engines. In the demo:
+
+1. The fleet held an AWS cluster with NVIDIA GPUs on a capacity block and a Vultr cluster with AMD GPUs, behind a regional gateway.
+2. A model deployment asked for two NVIDIA Blackwell nodes running vLLM in a leader/worker layout, without naming a cluster, and Modelplane placed it on AWS.
+3. The same model with SGLang on AMD landed on Vultr, and one OpenAI- and Anthropic-compatible endpoint fronted both.
+4. When the AWS capacity block was ending, he added CoreWeave Blackwell capacity and drained AWS. Replicas were recreated on CoreWeave while the AMD deployment stayed put. "Infrastructure changed, but our intent didn't."
+
+Upbound is applying to bring Modelplane into the CNCF.
+
+![From one cluster to a heterogeneous fleet: a fleet control plane for provisioning, scheduling, autoscaling, caching, and routing across clouds and on-prem](images/opening-rec-modelplane-fleet.jpg)
+
+*Frame from the official recording of "Welcome + Opening Remarks," Bassam Tabbara's segment.*
+
+The 2027 lineup: Barcelona (15–18 March), Shanghai (12–13 May), Yokohama (25–26 August), Bengaluru (9–10 September), and New Orleans (8–11 November).
+
+**For us:** if we run Crossplane, Modelplane is the same intent-over-placement model as our compositions, applied to model serving: the developer states the hardware and engine, and the control plane picks the cluster. Watch its CNCF application before building our own inference placement logic. gVisor and OpenShell entering the Sandbox add two more self-hostable options to next step 4.
 
 ### Agent Substrate: Open Layers for Agentic Systems
 
@@ -538,10 +568,11 @@ Five lessons:
 
 ## Sources
 
-Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wednesday 11 November 2026. Keynote and session recordings were searched on the official CNCF YouTube channel the same day; only the keynotes have been posted.
+Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wednesday 11 November 2026. Keynote and session recordings were searched on the official CNCF YouTube channel the same day; only the keynotes have been posted. Rechecked on the evening of 12 November 2026: the opening remarks are now posted and covered above; none of the Tuesday breakout sessions below have been posted, and no new Tuesday decks were uploaded.
 
 ### Based on the official recording (keynotes, no slides)
 
+- Welcome + Opening Remarks (recording added 12 November 2026)
 - Agent Substrate: Open Layers for Agentic Systems
 - Engineering Kubernetes for the Next Era of Workloads
 - Building the Next Generation of AI with Open Source

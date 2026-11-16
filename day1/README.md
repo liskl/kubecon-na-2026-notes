@@ -75,7 +75,7 @@ Flux started in 2016 as one of the first tools to put Git at the center of Kuber
 - **Try:** when the recording or slides land, compare the new Toolkit / Operator features with how we install, upgrade, and expose Flux today, before inventing a parallel agent-to-cluster path.
 - **Risk:** "wiring Flux into AI agents" is only safe if agents cannot apply around review. The later FluxCon backup on guardrails (see below) is the necessary counterpart, and it also had no slides posted yet.
 
-**From the community on X:** KubeFM ([@K8sFM](https://x.com/K8sFM/status/2120187548127384001), 10 Nov 09:11 MT) posted a clip from an [interview](https://kube.fm/flux-the-rewrite) in which, per the post, "Stephan" (Stefan Prodan) explains that "FluxCD v1 couldn't keep up with growing adoption. He led the rewrite to Flux v2." It is useful background for the talk's look back, but it adds no new detail on the roadmap. The section stays abstract-based.
+**From the community on X:** KubeFM ([@K8sFM](https://x.com/K8sFM/status/2120187548127384001), 10 Nov 09:11 MT) posted a clip from an [interview](https://kube.fm/flux-the-rewrite) in which, per the post, "Stephan" (Stefan Prodan) explains that "FluxCD v1 couldn't keep up with growing adoption. He led the rewrite to Flux v2." It is useful background for the talk's look back, but it adds no new detail on the roadmap. After FluxCon, [@plrtechworld](https://x.com/plrtechworld/status/2121113013109596419) (12 Nov 22:28 MT) highlighted Flux 2.10's SPIFFE workload identity and wrote, "Your GitOps controller is the most privileged thing you run." The post said 2.10 "went GA at FluxCon yesterday"; the official [Flux 2.10 blog](https://fluxcd.io/blog/2026/10/flux-v2.10.0/) and GitHub [v2.10.0 release](https://github.com/fluxcd/flux2/releases/tag/v2.10.0) are dated 26 October 2026, before the conference. The features themselves match that official announcement and the Day 4 SPIFFE Broker deck. This FluxCon session section stays abstract-based; the 2.10 identity work is covered in Day 4.
 
 ---
 
@@ -712,7 +712,7 @@ Searches on X for FluxCon and BackstageCon (9–12 Nov) mostly returned booth an
 
 ## Sources
 
-Rechecked against the live Sessionize APIs (`ayajbd6b` colocated, `svi82w6c` main) on the morning of Tuesday 10 November 2026. One primary deck URL had changed since the previous day: "Can Your Agent Execute Anything?" now points at the `ikjacwei~…` upload listed above.
+Rechecked against the live Sessionize APIs (`ayajbd6b` colocated, `svi82w6c` main) on the morning of Tuesday 10 November 2026. One primary deck URL had changed since the previous day: "Can Your Agent Execute Anything?" now points at the `ikjacwei~…` upload listed above. Public X posts were rechecked on 15 November 2026 for post-conference recaps; the new Flux 2.10 mention is cited under "Flux After 10 Years" above, with the official release date confirmed against GitHub.
 
 ### Based on uploaded slides plus the official recording
 

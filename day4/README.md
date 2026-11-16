@@ -427,13 +427,13 @@ The abstract describes a zero-trust architecture for agents that run arbitrary c
 
 ## From the community on X
 
-We found no X posts with slides, recaps, or corrections for The Most Boring Talk at KubeCon, Built for What's Next, From Platform Catalog to Conversational Agent, Here be DRAgons, or the SPIFFE Broker API session. Those sections are unchanged. One booth demo from the last day is worth recording: Google showed "a demo running SIXTEEN MILLION AGENTS using Agent Substrate" ([@kaslinfields](https://x.com/kaslinfields/status/2120973558906253383), 12 Nov 13:14 MT). See Day 2's Agent Substrate section for context.
+A 15 November search of public X posts found no new slides, recaps, or corrections for The Most Boring Talk at KubeCon, Built for What's Next, From Platform Catalog to Conversational Agent, or Here be DRAgons. Those sections are unchanged. One post-conference item is relevant to the SPIFFE Broker API session: [@plrtechworld](https://x.com/plrtechworld/status/2121113013109596419) (12 Nov 22:28 MT) highlighted Flux 2.10's SPIFFE workload identity ("short-lived credentials to registries, secret stores and remote clusters") and wrote, "Your GitOps controller is the most privileged thing you run." The post said 2.10 "went GA at FluxCon yesterday"; the official [Flux 2.10 blog](https://fluxcd.io/blog/2026/10/flux-v2.10.0/) and GitHub [v2.10.0 release](https://github.com/fluxcd/flux2/releases/tag/v2.10.0) are dated 26 October 2026, before the conference. The features match both that announcement and the deck already cited in this day's SPIFFE Broker section. One booth demo from the last day remains worth recording: Google showed "a demo running SIXTEEN MILLION AGENTS using Agent Substrate" ([@kaslinfields](https://x.com/kaslinfields/status/2120973558906253383), 12 Nov 13:14 MT). See Day 2's Agent Substrate section for context.
 
 ---
 
 ## Sources
 
-Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on the evening of Thursday 12 November 2026. One backup deck was new that day: "Four Resources, One Object." Recordings were searched on the official CNCF YouTube channel the same evening; only the keynotes have been posted.
+Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on the evening of Thursday 12 November 2026. One backup deck was new that day: "Four Resources, One Object." Recordings were searched on the official CNCF YouTube channel the same evening; only the keynotes have been posted. Public X posts were rechecked on 15 November 2026; the Flux 2.10 mention is cited under "From the community on X" above, and the official release date was confirmed against GitHub.
 
 ### Based on the official recording (keynotes, no slides)
 

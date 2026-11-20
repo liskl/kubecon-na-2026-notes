@@ -4,11 +4,13 @@ Session notes from the Monday colocated events in Salt Lake City, written for ou
 
 The takeaways and recommended next steps assume we already run Backstage and Flux in production. They are about extending, hardening, or improving that setup, not about adopting either tool.
 
-Times are Mountain Time, labeled MT, and come from the live Sessionize schedule as of Tuesday 10 November 2026. One itinerary slot had moved: [Zero-Touch App Team Onboarding](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1267718) is officially **11:50–12:15 MT**, not 09:45.
+Times are Mountain Time, labeled MT, and come from the live Sessionize schedule as of Tuesday 10 November 2026, rechecked on 20 November 2026. One itinerary slot had moved: [Zero-Touch App Team Onboarding](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1267718) is officially **11:50–12:15 MT**, not 09:45.
 
-Slide links are the official Sessionize "Presentation Slides" uploads, rechecked the morning of 10 November 2026. Where a deck existed, the notes below are taken from that deck. Where it did not, the notes are labeled as based only on the official abstract.
+Slide links are the official Sessionize "Presentation Slides" uploads, rechecked the morning of 10 November 2026 and again on 20 November 2026 (no new Day 1 decks appeared). Where a deck existed, the notes below are taken from that deck. Where it did not, and no official recording has been posted either, the notes are labeled as based only on the official abstract.
 
 **Updated 11 November 2026 with recordings.** CNCF has posted the BackstageCon recordings on YouTube. Seven sessions below now link to the official recording, and their notes add what was only said or shown in the room: demos, numbers, design decisions, and Q&A. Each one is labeled "slides plus the official recording" or "the official recording" (when no deck was posted). YouTube captions were rate-limited, so the speech was transcribed automatically. Quotes are kept short, and numbers were checked against the slides on screen where possible.
+
+**Updated 20 November 2026.** CNCF posted official recordings for additional Monday colocated sessions (FluxCon, Open Source Security Con, Observability Day, and Kubernetes on Edge Day), and those talks below now link to the recording. Notes from talks that already had a deck add only what the recording introduced. Flux After 10 Years, Zero-Touch App Team Onboarding, and Agentic GitOps had no Sessionize deck, so those sections were rewritten from the official recordings, with architecture and demo details checked against the slides on screen.
 
 ---
 
@@ -47,7 +49,7 @@ flowchart TB
 
 1. **Harden our Backstage as the front door for AI agents and MCP.** If a client is wired to a static admin token, or signs in as a human and inherits that person's full rights, that is the wrong default. This week, run the three settings checks from Kozuka's talk on our instance: allow only approved clients (and restrict static tokens), expose only the actions agents actually need, and turn on the permission framework so calls cannot skip policy. Do not wait for the upstream token-claim work. Read the code of every action we expose: an action that calls the plugin API as the plugin, not as the caller, never reaches our policy. Use the existing catalog — ownership, RBAC, and review — as the place agents, MCP servers, and skills are discovered, rather than a side channel of READMEs and chat threads.
 
-2. **Tighten Flux tenant onboarding and multi-tenancy, instead of opening a parallel GitOps path.** Assess our current app-team onboarding against the zero-touch pattern: self-service onto the Flux we already run, without a platform ticket; Flux Operator for Flux lifecycle if we still manage that by hand; notification-controller wired back into CI so developers see reconcile status; and automatic privilege boundaries between teams. Until that talk has slides, treat the isolation mechanism as unverified, but the product shape is the gap to measure.
+2. **Tighten Flux tenant onboarding and multi-tenancy, instead of opening a parallel GitOps path.** Assess our current app-team onboarding against the zero-touch pattern: self-service onto the Flux we already run, without a platform ticket; Flux Operator for Flux lifecycle if we still manage that by hand; notification-controller wired back into CI so developers see reconcile status; and Flux multi-tenancy with a platform-pinned service account on every tenant Kustomization and HelmRelease, plus a block on cluster-scoped objects. The Morgan Stanley talk spelled out that isolation mechanism; "zero-touch" still had a change ticket in front of production namespaces.
 
 3. **Automate Backstage catalog ownership.** Measure orphaned and "zombie" owners on our catalog, and put a human-in-the-loop proposal and escalation flow in front of any agent that will read `spec.owner`. Stale owners used to be embarrassing; when agents query the catalog, they are a bug. Stepstone open-sourced [ownership-matcher](https://github.com/stepstone-tech/backstage-plugins) for this. Per their Q&A, it has Bitbucket and GitLab connectors (GitHub in progress) and no path-level attribution for monorepos yet.
 
@@ -64,20 +66,61 @@ flowchart TB
 - **Time:** 09:10–09:35 MT · Salt Palace Level 1, Grand Ballroom H
 - **Speaker:** Stefan Prodan
 - **Session:** [Flux After 10 Years: GitOps for Humans and Agents](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1269558)
-- *Based on the session abstract (no slides posted yet).*
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=gNz0pH8v-aQ)
+- *Based on the official recording (no slides posted on Sessionize). YouTube captions were rate-limited, so the speech was transcribed automatically. Product names, version numbers, and the 2026 release list were checked against the slides on screen.*
 
-Flux started in 2016 as one of the first tools to put Git at the center of Kubernetes delivery, and the "GitOps" name grew up alongside it. After a short look back, the session is about where Flux is going: features shipped over the past year in the GitOps Toolkit and Flux Operator, then two shifts that the abstract says will define the next decade. The first is wiring Flux into AI agents. The second is bringing Flux closer to developers through the Flux Operator UI. It closes with the Flux roadmap and places to contribute.
+Flux started in 2016 at Weaveworks, was rebuilt as the GitOps Toolkit in 2020, graduated CNCF in 2022, grew the Flux Operator in 2024, and in 2026 the story is "AI joins the GitOps loop." Prodan's own recap of the early years is in an [Atlanta talk](https://kube.fm/flux-the-rewrite) he pointed at; this session is about what shipped this year and how Flux is being redesigned for agents as well as humans. The on-screen timeline is at [fluxcd.io/blog/2026/07/flux-turns-10](https://fluxcd.io/blog/2026/07/flux-turns-10).
+
+The first half is a maintainer's view of the AI-contribution wave. People "can run 100 agents, they are scanning all the repos, and they open 100 pull requests in one minute." Merging one of those is more work than opening a hundred. Flux added an AI contribution line to its governance, in a similar spirit to the Linux kernel: you must say which agent, LLM, and configuration you used; an agent cannot sign off; "Co-authored-by: Claude" is rejected; an "assisted by" tag is fine. "We want humans to take responsibility." After they put those rules and repo workflows in place, the share of incoming agent PRs that "look quite good when [they] get open" rose from essentially none to "maybe 10%… still 90% to go." He was explicit that Flux is not a project that refuses AI contributions, and also that IP ownership of a hypothetical all-agent codebase is an unsolved question; Flux is not in that position because, "until last year," it was built by humans.
+
+The project now ships **three minor releases a year**. The 2026 slide, checked on screen:
+
+![Three 2026 Flux releases: v2.8 Helm v4 and server-side apply, v2.9 CLI plugins, v2.10 SPIFFE and mTLS](images/flux-10y-rec-releases.jpg)
+
+*Frame from the official recording of "Flux After 10 Years: GitOps for Humans and Agents," Stefan Prodan.*
+
+- **v2.8 (February):** Helm v4, server-side apply by default; faster recovery from failed deployments; PR and MR comments from notifications; CEL readiness for Helm objects. Prodan thanked the Helm team: Flux has used server-side apply from day one, and "finally now all the Flux controllers are behaving the same, they have the same drift detection and correction mechanism."
+- **v2.9 (June):** Flux CLI plugin system; drift ignore rules for server-side apply; secret-less OIDC receivers; SSH commit signing and verification.
+- **v2.10 (October):** SPIFFE workload identity; mTLS between controllers; alerting APIs promoted to v1; multi-tenant ArtifactGenerator.
+
+On 2.10 he went further than the bullet list. SPIFFE identity gives mTLS "between our own controllers, but also… with your own systems… integrated with SPIRE." He thanked Matt, a Flux maintainer, for the workload-identity work, and said they plan to publish a full bootstrap example (including a Terraform/OpenTofu-style module) that brings up SPIRE, Flux, and mTLS without a prior `kubectl apply`. Next year's stated direction is "deep integrations with SPIFFE and SPIRE… across all of Flux APIs," including bringing your own identity provider rather than only the three clouds' workload identity. Official release notes are on the [Flux blog](https://fluxcd.io/blog); the [v2.10.0 release](https://github.com/fluxcd/flux2/releases/tag/v2.10.0) is dated 26 October 2026, which matches the October tag on the slide.
+
+A separate "New in 2026" slide, not all of it in the spoken recap, listed four ecosystem pieces: **Flux Mirror** (CLI plugin to mirror images, charts, and OCI artifacts between registries, with signature checks), **Flux Schema** (CLI plugin to validate manifests locally with the same semantics as the API server), **[flux9s](https://fluxcd.io/blog/2026/10/flux9s-ga/) 1.0** (a K9s-style terminal UI written in Rust by Dan Guns; Prodan noted it is a community project, not in the CNCF Flux repo), and official **Agent Skills** for authoring, auditing, and debugging Flux.
+
+**Flux Operator**, started in 2024 outside CNCF (under a ControlPlane-led org, now with outside contributors), is the high-level API on top of the GitOps Toolkit's many CRDs — "like 15 CRDs and we keep growing." That scoped, loosely coupled API surface is, in his view, why agents can work with Flux: the major LLMs are already trained on Flux source, and they can compose the Lego pieces. The downside is stale training; an agent may tell you to enable Flux multi-tenancy even when you already isolate teams with one cluster each. The Operator now has an official web UI ([fluxoperator.dev/web-ui](https://fluxoperator.dev/web-ui)): a "Source to Pods" dashboard that follows a change from an OCI source to running pods, with reconcile, rollout restart, and logs on the same page. "Every action [is] gated by Kubernetes RBAC." Reconcile is rate-limited on the backend ("people can click reconcile 1000 times… it will only reconcile once"). Preview environments are also in the Operator and the UI: open a PR (GitHub, GitLab, Azure DevOps, or Gitea/Forgejo), a ResourceSet input provider picks up the change, the app is deployed to its own namespace, Flux comments status back on the PR, and the environment is garbage-collected on merge or close. "Developers test real changes on a real cluster. Platform sets it up once."
+
+The agent-facing pieces:
+
+- **Flux MCP Server** ([fluxoperator.dev/mcp-server](https://fluxoperator.dev/mcp-server)) "connects AI assistants to clusters running Flux Operator." Agents can analyze cluster and pipeline state, trace failures, reconcile/diff/patch resources, and compare environments. Guardrails on the slide: it runs with your kubeconfig permissions, supports service-account impersonation, masks secret values, and has a **read-only mode** for observation. Prodan called read-only mode "probably the only exception we made in Flux where even if you set up RBAC, we still allow you to have this toggle," and recommended starting with it in production. He also said that if the MCP is allowed to patch, and the target is a Flux-managed object, it should refuse and tell the agent to open a pull request instead.
+- **gitops-cluster-debug**, in [github.com/fluxcd/agent-skills](https://github.com/fluxcd/agent-skills), "turns a coding agent into a Flux on-call engineer": check health of the Flux install and controllers, trace the HelmRelease or Kustomization chain, gather events/logs/source status, and report root cause plus remediation. The on-screen install was `flux plugin install operator` then `flux operator skills install ghcr.io/fluxcd/agent-skills --agent claude-code`.
+- A **specialized Flux agent** is "very advanced into proof of concept": a custom harness and sandbox, meant to run in the cluster next to Flux Operator and be orchestrated by it. He pointed at KubeCon / FluxCon Barcelona for a follow-up. The last minute of the recording is unclear, so this notes page does not describe a live demo.
+
+He was frank that "deterministic is… at the hope level at this point." The design goal is an agent that handles a 2am page, then leaves a pull request in the morning with the root-cause analysis and what it did to recover.
+
+![Guardrails: the agent diagnoses via MCP, opens a pull request, a human reviews, Flux reconciles](images/flux-10y-rec-guardrails.jpg)
+
+*Frame from the official recording of "Flux After 10 Years: GitOps for Humans and Agents," Stefan Prodan.*
+
+```mermaid
+flowchart LR
+  Agent["Agent<br/>diagnoses via MCP"] --> PR["Pull request<br/>proposed change"]
+  PR --> Review["Review<br/>human approves"]
+  Review --> Git["Git or OCI<br/>desired state"]
+  Git --> Flux["Flux<br/>reconciles"]
+  Flux --> Cluster["Cluster<br/>observed state"]
+  Cluster --> Agent
+```
+
+The on-screen line: "Agent changes land like human changes: reviewed, versioned, reconciled."
 
 **Key takeaways**
 
-- **Watch:** Flux's next year is being framed around agents and a first-class UI, not only controllers. The Operator UI and any agent-facing APIs are the pieces to map onto our current Flux footprint.
-- **Extend Flux rather than add a side path:** keeping Git as the source of truth is still the right model when agents start opening changes. The abstract is about making the Flux we already run usable by both humans and agents, not replacing GitOps.
-- **Try:** when the recording or slides land, compare the new Toolkit / Operator features with how we install, upgrade, and expose Flux today, before inventing a parallel agent-to-cluster path.
-- **Risk:** "wiring Flux into AI agents" is only safe if agents cannot apply around review. The later FluxCon backup on guardrails (see below) is the necessary counterpart, and it also had no slides posted yet.
+- **Extend the Flux we already run, rather than add a side path.** The next year of Flux is being designed for two personas, humans and agents, but the enforcement model is unchanged: agents propose PRs, Flux reconciles only what passed review. The MCP read-only toggle and the "don't patch a Flux-managed object" rule are the concrete guardrails to try first.
+- **Try the 2.10 SPIFFE workload identity and mTLS path** against our current Flux install, and compare it with the Day 4 SPIFFE Broker session. The official v2.10.0 release is already out (26 October 2026). Treat in-cluster Flux Operator features (web UI, preview environments, MCP server) as optional add-ons to evaluate, remembering Flux Operator is not a CNCF project.
+- **Use the official skills and MCP for diagnosis, not for unattended applies.** `gitops-cluster-debug` is a reasonable starting point for an on-call helper, hooked to GitHub or GitLab so it can open a PR. The specialized in-cluster Flux agent is still a proof of concept.
+- **Risk:** LLMs know Flux from training and will happily suggest multi-tenancy or other settings that do not match our topology. Stale training plus a writable MCP is the failure mode this talk is trying to close. Also, "10% of agent PRs look quite good" is his quality number for contributions *to Flux itself*, not a claim about agents changing production clusters.
 
-**From the community on X:** KubeFM ([@K8sFM](https://x.com/K8sFM/status/2120187548127384001), 10 Nov 09:11 MT) posted a clip from an [interview](https://kube.fm/flux-the-rewrite) in which, per the post, "Stephan" (Stefan Prodan) explains that "FluxCD v1 couldn't keep up with growing adoption. He led the rewrite to Flux v2." It is useful background for the talk's look back, but it adds no new detail on the roadmap. After FluxCon, [@plrtechworld](https://x.com/plrtechworld/status/2121113013109596419) (12 Nov 22:28 MT) highlighted Flux 2.10's SPIFFE workload identity and wrote, "Your GitOps controller is the most privileged thing you run." The post said 2.10 "went GA at FluxCon yesterday"; the official [Flux 2.10 blog](https://fluxcd.io/blog/2026/10/flux-v2.10.0/) and GitHub [v2.10.0 release](https://github.com/fluxcd/flux2/releases/tag/v2.10.0) are dated 26 October 2026, before the conference. The features themselves match that official announcement and the Day 4 SPIFFE Broker deck. This FluxCon session section stays abstract-based; the 2.10 identity work is covered in Day 4.
-
----
+**From the community on X:** KubeFM ([@K8sFM](https://x.com/K8sFM/status/2120187548127384001), 10 Nov 09:11 MT) posted a clip from an [interview](https://kube.fm/flux-the-rewrite) in which, per the post, "Stephan" (Stefan Prodan) explains that "FluxCD v1 couldn't keep up with growing adoption. He led the rewrite to Flux v2." That is the earlier history talk he also pointed at in this recording. After FluxCon, [@plrtechworld](https://x.com/plrtechworld/status/2121113013109596419) (12 Nov 22:28 MT) highlighted Flux 2.10's SPIFFE workload identity and wrote, "Your GitOps controller is the most privileged thing you run." The post said 2.10 "went GA at FluxCon yesterday"; the official [Flux 2.10 blog](https://fluxcd.io/blog/2026/10/flux-v2.10.0/) and GitHub [v2.10.0 release](https://github.com/fluxcd/flux2/releases/tag/v2.10.0) are dated 26 October 2026, before the conference. The recording and the on-screen October slide agree with that official date.
 
 ### From Geological Layers to NFS: Migrating a Decade of Backstage with AI
 
@@ -141,6 +184,9 @@ Patrik showed the plugin dependency graph before and after. Most of the plugins 
 - **Speakers:** Sohan Kunkerkar (Red Hat), Michał Woźniak (Google)
 - **Session:** [Kueue, DRA, and WAS: The Kubernetes Scheduling Triangle](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1262907)
 - **Slides:** [Presentation slides (PDF)](https://sessionize.com/download/iuuloq~RBC7UEcNnWxtxTZgL5UFZJ.pdf~kubecon-na-2026-kueuewasdra.pdf)
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=q-acYCRY1bs)
+- *Based on the official uploaded slides plus the official recording (added 20 November 2026). YouTube captions were rate-limited, so the speech was transcribed automatically. The talk follows the deck closely; a few audience questions were hard to hear and are omitted.*
+
 
 The problem is orchestrating AI training and inference across teams that compete for scarce accelerators, while still enforcing organizational policy: fair sharing, gang scheduling (all pods start, or none do), and topology-aware placement on the accelerator fabric. Device plugins that only count `nvidia.com/gpu: 2` cannot tell a 10 GiB MIG slice from an 80 GiB GPU. DRA models devices by attributes, slices, and shared capacity. Kueue decides who runs and when (queues, quota, borrowing, preemption). WAS — Workload-Aware Scheduling — decides where the group runs, as gang scheduling and topology awareness move into core Kubernetes.
 
@@ -156,6 +202,8 @@ Native topology-aware scheduling in Kueue is Beta and on by default. "Basic" WAS
 
 *Slide from "Kueue, DRA, and WAS: The Kubernetes Scheduling Triangle," Sohan Kunkerkar and Michał Woźniak.*
 
+The recording adds two clarifications in Q&A. They do not want Kueue to be "one of the schedulers that you could put into the pod template." They want it as an orchestration layer above, deciding who runs and when, and delegating placement to kube-scheduler, the co-scheduler, or a custom scheduler the user already has — the same split as the deck. On fractional GPUs, they said NVIDIA currently supports that path, and that architecturally Kueue should stay the quota system and "let [the] driver decide" how the device is divided, rather than Kueue taking on vendor-specific slice logic.
+
 **Key takeaways**
 
 - **Watch, don't standardize early:** several of the important pieces (shared-GPU quota, pre-admission device checks, deep WAS integration, group-level DRA) are Alpha or still in progress. Treat this as a roadmap briefing, not a bake-off winner.
@@ -168,32 +216,53 @@ Native topology-aware scheduling in Kueue is Beta and on by default. "Basic" WAS
 ### Zero-Touch App Team Onboarding: Powering Self-Service Kubernetes at Enterprise Scale with Flux
 
 - **Time:** 11:50–12:15 MT · Salt Palace Level 1, Grand Ballroom H
-- **Speakers:** Tiffany Wang, Anthony Burris
+- **Speakers:** Tiffany Wang, Anthony Burris (Morgan Stanley)
 - **Session:** [Zero-Touch App Team Onboarding](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1267718)
-- *Based on the session abstract (no slides posted yet).*
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=R5dHlcHDOjo)
+- *Based on the official recording (no slides posted on Sessionize). YouTube captions were rate-limited, so the speech was transcribed automatically. A few Q&A answers were hard to hear; those are omitted rather than guessed.*
 
-At a large financial institution running Flux across hundreds of private and public cloud Kubernetes clusters, the question is how to make GitOps transparent to thousands of developers. The speakers describe a fully automated, zero-touch GitOps onboarding platform for Flux-powered clusters, with no platform-team intervention. The architecture is meant to meet production SLA requirements while preventing privilege escalation across team boundaries. They use the Flux Operator to simplify Flux lifecycle management, and they close the feedback loop for app developers by wiring Flux's notification-controller back into CI pipelines so developers can see deployment status. The abstract presents this as a blueprint for self-service GitOps that removes the platform team as a ticket bottleneck.
+Wang and Burris are on the Kubernetes platform team at Morgan Stanley, where Flux is "the de facto standard… for deploying any workload on Kubernetes." The question they set out to answer: with hundreds of Flux-powered clusters and thousands of developers, how do you keep GitOps transparent to app teams without making onboarding a full-time job for the platform team? The old path was a ticket, a platform engineer raising PRs, and app teams also having to remember internal API calls. That produced drift, delays, uneven guardrails, and hidden breakage. "The platform team became the bottleneck that the platform was trying to solve." Giving everyone cluster-admin was "absolutely never an option" under their regulatory requirements.
+
+They named three non-negotiables: **zero-touch** (namespaces provisioned automatically, and tenant resources only through GitOps, or cluster rebuilds become a headache), **safe by default** (tenants cannot award themselves higher privileges than platform and governance granted), and **production-grade** (SDLC and change-management requirements, SLAs, auditable from day one).
+
+The launch point is an existing **inventory API**. Every create, label change, or decommission of a namespace already had to go through it, because that is where ownership lives; clients cannot apply those labels directly. A producer-consumer pair watches that API. The producer enqueues onboarding, updates, and decommissions so the platform team is no longer in the ticket path. The consumer writes commits to a central Git repository: the namespace manifest, a service-account reconciler for the owning group, and the RBAC for the service accounts that will later reconcile the tenant's workloads. If Git is down, the queue retries, which is how they claim production-grade SLAs for "requests won't be lost." They do not point Flux at Git directly. An intermediary push service syncs those commits to S3 buckets; Flux's source-controller watches the bucket. On the cluster, **Flux Operator** manages the Flux instance and its controllers. At the same time, the platform layer installs Alert and Provider resources on the notification-controller so developers get a consistent status loop.
 
 ```mermaid
 flowchart TD
-  Dev["App team self-service request"] --> Plat["Zero-touch onboarding platform<br/>no platform-team ticket"]
-  Plat --> FO["Flux Operator<br/>Flux lifecycle management"]
-  FO --> Clusters["Flux on private and public cloud clusters"]
-  Clusters --> NC["Flux notification-controller"]
-  NC --> CI["CI pipeline<br/>deployment status feedback"]
+  Dev["App team request"] --> Inv["Inventory API<br/>create, label, or decommission a namespace"]
+  Inv --> PQ["Producer-consumer queue<br/>retries if Git is down"]
+  PQ --> Git["Central Git repo<br/>namespace, tenant service account, RBAC"]
+  Git --> Push["Intermediary push service"]
+  Push --> S3["S3 bucket"]
+  S3 --> Flux["Flux source-controller<br/>managed by Flux Operator"]
+  Flux --> NS["Namespace and tenant reconciler ready"]
+  Dev2["App team CI<br/>validate, change ticket for prod, authorized path"] --> S3app["Tenant path on the S3 bucket"]
+  S3app --> Flux2["Flux reconciles HelmRelease or Kustomization"]
+  Flux2 --> NC["notification-controller"]
+  NC --> Dev2
 ```
 
-*Flow inferred only from the official abstract, not from a deck.*
+Once the namespace exists, developers write manifests in their own repos, run them through CI (validation, SDLC, a change ticket for production, and a check that they are authorized to push to the correct S3 path), and Flux reconciles the HelmRelease or Kustomization. Notification-controller then posts reconcile success or failure back into the CI pipeline. Developers choose which Kustomizations or HelmReleases they want to be notified about.
+
+**Isolation and enforcement**, the part the abstract left unspecified:
+
+- Every tenant reconciles under its own service account, scoped to its own namespace, using Flux multi-tenancy.
+- Cluster-scoped resources are off limits to tenant Kustomizations and HelmReleases. A tenant cannot create ClusterRoles, ClusterRoleBindings, or CRDs, or touch another team's namespace, even if those objects are in their manifests.
+- Flux is further limited to a subset of namespace-scoped resources when it reconciles on behalf of a tenant.
+- Every Kustomization and HelmRelease must set a `serviceAccountName`, or Flux will not reconcile it.
+- Impersonation is pinned by the platform; tenants cannot pick or elevate the service account they run as.
+- Policy is enforced at namespace creation, again in CI, and in the cluster. Platform-sanctioned updates and operational commits are all in Git.
+
+**Flux lifecycle.** Before Flux Operator, a platform engineer maintained "thousands of long-term Flux installation manifests," each wrapped in its own configuration policy so Flux would work with internal systems. Now they manage the Operator plus a single FluxInstance manifest and still keep per-controller control of version, components, distribution, and settings. The operator handles install, upgrade, drift detection, and reconcile of Flux itself: a smaller surface, simpler upgrades, and "GitOps all the way down." Flux metrics from each cluster go into a collection pipeline and Grafana.
+
+In Q&A, the reliably audible points were: vendor Helm charts that demand cluster-admin or ClusterRoleBindings still go through a platform review for a least-privilege version; CRDs, being cluster-scoped, go through that same top-level review because a CRD plus elevated RBAC is the risk, not the CRD alone; every application has a system ID tied into a central technology-access-management process, and the inventory API labels the namespace with that application ID; production namespace create, update, or decommission requires an approved change ticket; Flux itself is rolled from lower environments to higher ones, not hand-managed per cluster. They also said they are productionizing the Flux MCP server for the wider developer population and are "really excited" about its read-only mode in production clusters, following the guidance from Stefan Prodan and Leigh Capili in the FluxCon sessions that day.
 
 **Key takeaways**
 
-- **Improve our Flux onboarding, not our choice of tool:** self-service onto the clusters Flux already manages, without a platform ticket, plus a status loop back into CI, is the UX to measure our current process against, even if our cluster count is much smaller than "hundreds."
-- **Watch the security claim closely, especially our tenant boundaries.** "No platform-team intervention" only works if tenancy and privilege boundaries are enforced automatically. The abstract says they prevent privilege escalation across teams; until slides or a recording exist, treat the mechanism as unknown and do not loosen our review or isolation model to copy the workflow.
-- **Try Flux Operator** for Flux lifecycle management if we still install and upgrade Flux by hand, and wire notification-controller into CI if developers still have to ask whether a reconcile succeeded or failed.
-- **Risk:** a financial-institution pattern may still be a useful reference for healthcare, but we cannot verify SLA or isolation details from the abstract alone.
-
----
-
+- **Measure our Flux onboarding against this shape, not against their scale.** Self-service onto the clusters Flux already manages, without a platform ticket, plus a status loop back into CI, is the UX to compare. We do not need an inventory API or an S3 intermediary to copy the isolation model.
+- **Adopt the isolation mechanism that is now specified.** Flux multi-tenancy with a platform-pinned service account, a required `serviceAccountName` on every tenant reconciler, and a hard block on cluster-scoped objects is the pattern to check our current tenant setup against. That is what makes "no platform-team intervention" safe, and it is no longer unverified.
+- **Try Flux Operator** if we still install and upgrade Flux with per-cluster manifest sprawl, and wire notification-controller into CI if developers still have to ask whether a reconcile succeeded.
+- **Risk:** their production-namespace path still has a change ticket in front of the inventory API, so "zero-touch" is not "no governance." Also, the Flux MCP server they are rolling out is intended to start read-only in production; a writable MCP would sit outside this isolation story unless it is also forced through Git.
 ### What Changes When Crossplane Adoption Gets Real
 
 - **Time:** 12:27–12:32 MT · Hyatt Regency Level 4, Regency Ballroom B–D
@@ -218,6 +287,9 @@ Building a Crossplane control plane is one thing; getting real teams at a risk-a
 - **Speakers:** Nikita Verma, Harshita Varma
 - **Session:** [Architecting the Agentic Data Plane: Scaling MCP](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1269698)
 - **Slides:** [Presentation slides (PPTX)](https://sessionize.com/download/iylaojse~Wpkiov3tNYrUneDwLU9is7.pptx~agentic_data_plane.pptx)
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=7U-_1VdbuH4)
+- *Based on the official uploaded slides plus the official recording (added 20 November 2026). YouTube captions were rate-limited, so the speech was transcribed automatically.*
+
 
 MCP works as local stdio on a laptop and then breaks the usual Kubernetes scaling assumptions. The deck separates layers that people collapse into one: the agent loop, connection state, MCP/session state, and the tool's side effect are not the same thing. Stdio couples the client to a local child process; a remote proxy only sees headers, routes, status, and bytes unless you add protocol awareness. A tool call is a chain, not one magic request. Two identifiers matter, and they are not interchangeable: the JSON-RPC request ID correlates a protocol request and response; an operation key deduplicates a business action. If the response is lost, the tool may already have committed.
 
@@ -240,6 +312,8 @@ Retries must be operation-aware. Read-only lookups can usually be retried. A cre
 ![Five takeaways: the data plane can route traffic; it cannot invent correctness](images/mcp-dataplane-p31.png)
 
 *Slide from "Architecting the Agentic Data Plane: Scaling MCP," Nikita Verma and Harshita Varma.*
+
+The recording walks the same deck. They opened with the laptop-to-cluster failure ("as soon as you are changing from one laptop to a… cluster, it breaks") and closed by pointing the room at the uploaded slides for the examples after they ran out of time. There was no audible Q&A. Nothing in the talk contradicted the deck, including the point that protocol-aware inspection is not stock Envoy behavior.
 
 **Key takeaways**
 
@@ -315,6 +389,9 @@ He also explained why naming the agent in a header or a tool input does not solv
 - **Speakers:** Maia Iyer, Hai Huang (IBM Research)
 - **Session:** [License to Generate: Securing AI Agents with Keycloak, SPIRE, and Envoy](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1268158)
 - **Slides:** [Presentation slides (PPTX)](https://sessionize.com/download/szaitme~EVs2VUYicrf4yskRLLrmkB.pptx~ossc-slides.pptx)
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=2g8NnNtPHdU)
+- *Based on the official uploaded slides plus the official recording (added 20 November 2026). YouTube captions were rate-limited, so the speech was transcribed automatically. Demo details and the Envoy role were checked against what was said on stage.*
+
 
 The motivating case is a "catch-up" agent that reads email, Slack, and GitHub after time away. It is easy to mint new generalist agents, and just as easy to lose track of the keys you gave them; the failure mode is one key with all permissions attached. They define zero trust as least-privilege, per-request access, and then ask a sharper AuthN question than "who are you?": **which user, via which agent?**
 
@@ -348,13 +425,18 @@ Authentication is not enough for prompt injection. In the example, an attacker-i
 
 They also point at [rossoctl/cortex](https://github.com/rossoctl/cortex) for local-first auditability of token cost and tool calls, with a proxy they say is being migrated to a newly CNCF-sandboxed project (speaker notes name Praxis). Open questions include WIMSE / AAuth, related rossoctl work (AIAC, Sentry), and the observation that **pod identity is not agent identity** (agent-substrate: suspend, resume, snapshot storage).
 
+The recording fills the Envoy path that the slides leave undrawn. Iyer said they "used Envoy as the proxy for the agent so that the agent could achieve no-code… integration with all of these identity pieces." Huang then demoed [rossoctl/cortex](https://github.com/rossoctl/cortex), which he said is built from SPIFFE/SPIRE for workload identity, Keycloak for token management, and Envoy for intercepting network traffic. A point he stressed: Cortex "sits on the agent and not on the model," so it sees not only inference calls but GitHub, MCP, and other API calls.
+
+The demo ran two email-summarizer agents as pods in a local kind cluster, in the `team-one` namespace, with Cortex as a sidecar on both. The agents were identical except that one had an IBAC plugin. A poison-email prompt injection tried to send the summarized mail to an attacker-controlled `ibac-evil-server`. The unprotected agent completed the user prompt ("summarize my emails") and also exfiltrated to that endpoint. The IBAC agent was blocked; Huang said the platform rejected the tool call because "the proposed action includes sensitive information," and the TUI showed a 403 on the attacker endpoint. He also showed Cortex views for token cost per call. Maia added that Cortex now runs locally with local coding agents as well, because "most of the most powerful agents… are run locally," and that they plan to migrate its proxy to the newly CNCF-sandboxed Praxis project (described as a REST-based proxy, "kind of like Envoy," with better body parsing).
+
+A closing caution, spoken rather than drawn: today's local agents are very stateful (harness files such as `AGENTS.md`), and "what SPIFFE does not do… is… integrate… the state." They pointed at Agent Substrate's snapshot/resume model as one possible way to map a logical agent identity onto physical workers, and at WIMSE (SPIFFE across trust domains) and AAuth (intent-bound authorization) as standards work that may line up with IBAC.
+
 **Key takeaways**
 
 - **Adopt the identity split:** a user identity, an agent identity, and a workload identity (SPIFFE) are three different things. Binding them with OAuth token exchange and short-lived, audience-restricted tokens is a pattern we can start designing toward even before we pick products.
-- **Try, if we already run Keycloak or SPIRE:** the Keycloak 26.4.0 SPIRE interoperability preview is the concrete integration to evaluate, based on the speaker notes in the uploaded deck. Do not treat a preview as production-ready.
-- **Watch IBAC as a research pattern, not a boxed product.** The prompt-injection example is useful — a tool call can be in policy for that user and still be misaligned with the original task — but a model-judge is not, by itself, a control we would rely on in a regulated workflow.
-- **Risk:** a single long-lived key shared across agents, or a pod identity reused as the agent identity, will not give us a per-request audit trail. That is the failure mode this talk is written against.
-- **Gap to note:** the title includes Envoy, and the official abstract promises a walk-through of blocking an attack at various layers. The uploaded slides show the identity architecture, the injection example, and IBAC; they do not include a labeled Envoy policy path or a layer-by-layer block diagram.
+- **Try, if we already run Keycloak or SPIRE:** the Keycloak 26.4.0 SPIRE interoperability preview is the concrete integration to evaluate, based on the speaker notes in the uploaded deck. Do not treat a preview as production-ready. The recording's Envoy role is as a sidecar proxy that intercepts the agent's outbound traffic, not as an inference gateway.
+- **Watch IBAC as a research pattern, not a boxed product.** The demo is useful — a tool call can be in policy for that user and still be misaligned with the original task — and it did block the exfiltration in their kind cluster. A model-judge plus a sidecar is still not, by itself, a control we would rely on in a regulated workflow.
+- **Risk:** a single long-lived key shared across agents, or a pod identity reused as the agent identity, will not give us a per-request audit trail. The speakers also noted that SPIFFE workload identity does not capture the filesystem state that actually defines a local agent's behavior.
 
 ---
 
@@ -433,6 +515,9 @@ flowchart LR
 - **Speakers:** Pedro Célestin (CLDF), Julia Furst Morgado (Dash0)
 - **Session:** [Automated Resource Allocation Driven by Service Level Objectives](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1249654)
 - **Slides:** [Presentation slides (PDF)](https://sessionize.com/download/ccapfelta~D3SskGLyLAXFiF3Jj2GUrs.pdf~automated-resource-allocation-driven-by-slos.pdf)
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=6FzTYfz2Dx4)
+- *Based on the official uploaded slides plus the official recording (added 20 November 2026). YouTube captions were rate-limited, so the speech was transcribed automatically.*
+
 
 The opening problem is familiar: developers guess CPU and memory, copy a neighbor's values, or ask a platform team that does not understand the workload. Under-sizing breaks production; over-sizing wastes capacity. SLOs and error budgets already exist, but they feed dashboards, alerts, postmortems, and "Notion docs nobody reads." They almost never drive infrastructure. The proposed loop is: monitor SLIs, error budgets, and resources; decide with a planner / controller when something is actually a resource problem (CPU throttling, memory near limit, autoscaler pinned at max) rather than a bad release; adjust replicas or requests; validate against SLI data. Every adjustment is a hypothesis.
 
@@ -464,6 +549,8 @@ flowchart LR
 ![Guardrails as code in three layers: CI, admission, and canary](images/slo-alloc-p16.png)
 
 *Slide from "Automated Resource Allocation Driven by Service Level Objectives," Julia Furst Morgado and Pedro Célestin.*
+
+The recording follows the deck. Julia Furst Morgado (Dash0) opened with a caution that "the specific numbers… percentages, thresholds… are just a baseline to illustrate the concept, but they are not rigid." Pedro Célestin is Head of Infrastructure and Platforms at CLDF, the Legislative Chamber of Brazil's Federal District. Their three take-homes, spoken at the end: SLOs are the north star for what resources should be; "AI just proposes, but you should be around and do all the manual work around it"; and "start with rules and canaries." They pointed at a longer article Pedro wrote (a QR code on the last slides) for the architecture they had to condense. There was no substantial audible Q&A.
 
 **Key takeaways**
 
@@ -557,9 +644,9 @@ flowchart LR
 
 ### From Helmfile to Flux: GitOps for Telco at Enterprise Scale
 
-Carl-Fredrik Sundstrom and Jesús González Royo (Ericsson), 10:40–11:05 MT, Salt Palace Level 1, Grand Ballroom H. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1268262) · [Slides](https://sessionize.com/download/qtawwei~sJv9sGxgBg8EpxxeqVE6oB.pdf~from_helmfile_to_flux_gitops_for_telco_at_enterprise_scale_2.pdf).
+Carl-Fredrik Sundstrom and Jesús González Royo (Ericsson), 10:40–11:05 MT, Salt Palace Level 1, Grand Ballroom H. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1268262) · [Slides](https://sessionize.com/download/qtawwei~sJv9sGxgBg8EpxxeqVE6oB.pdf~from_helmfile_to_flux_gitops_for_telco_at_enterprise_scale_2.pdf) · [Recording](https://www.youtube.com/watch?v=vsTiCnJws1Y). *Slides plus the official recording (added 20 November 2026).*
 
-They did not rebuild years of CI/CD. They generate Flux manifests from the Helmfile assets the product pipelines already produce, and let each customer move from classic Helmfile, to hybrid, to full GitOps on their own change-control clock. Helm charts stay Helm charts; helm-controller is Flux, and Flux 2.8 ships Helm v4 natively. Day-2 and Day-N config becomes commits, with four-eye approval. Their one-line close: "GitOps isn't simply a deployment mechanism. It's an operating model for regulated environments." Directly relevant if we ever migrate an existing Helm delivery path.
+They did not rebuild years of CI/CD. They generate Flux manifests from the Helmfile assets the product pipelines already produce, and let each customer move from classic Helmfile, to hybrid, to full GitOps on their own change-control clock. Helm charts stay Helm charts; helm-controller is Flux, and Flux 2.8 ships Helm v4 natively. Day-2 and Day-N config becomes commits, with four-eye approval. Their one-line close: "GitOps isn't simply a deployment mechanism. It's an operating model for regulated environments." Directly relevant if we ever migrate an existing Helm delivery path. The recording adds why they would not duplicate the pipeline: they are the vendor, they ship quarterly into a regulated environment, and the customer decides when to move from Helmfile to GitOps, so one deliverable has to support both. In Q&A they also said they often use [kwok](https://kwok.sigs.k8s.io/) for fast, fake-workload end-to-end checks of the conversion path, and treat deeper health-check behavior as a trade-off already covered in the Helmfile-based pipeline.
 
 ![Helmfile to Flux conversion: generate Flux resources from what pipelines already produce, then reconcile](images/helmfile-flux-p07.png)
 
@@ -567,9 +654,32 @@ They did not rebuild years of CI/CD. They generate Flux manifests from the Helmf
 
 ### Agentic GitOps: Agent and Sandbox Guardrails with Flux
 
-Leigh Capili and Tamao Nakahara, 11:15–11:40 MT, Salt Palace Level 1, Grand Ballroom H. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1269797). *Based on the session abstract (no slides posted yet).*
+Leigh Capili and Tamao Nakahara, 11:15–11:40 MT, Salt Palace Level 1, Grand Ballroom H. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1269797) · [Recording](https://www.youtube.com/watch?v=gRs0f2e9ZQY). *Based on the official recording (no slides posted on Sessionize; added 20 November 2026). YouTube captions were rate-limited, so the speech was transcribed automatically. The architecture, `nono` behavior, and demo details below were checked against the slides and terminal on screen.*
 
-The abstract's warning is blunt: with weak RBAC, an agent can `kubectl delete`, including deleting CI, with no commit to roll back. Flux is used to confine agents to human-reviewable PRs, with a kernel-sandboxing tool called `nono`, and to manage the agents' sandboxes so a confused or malicious agent cannot weaken the security policy itself. Example use cases: Prometheus metrics triggering resource tuning, troubleshooting and rollback after HPA crashes, and agents requesting additional network access through PRs.
+The abstract's warning still stands, and the recording makes it concrete: do not just hand the agent a kubeconfig. Cluster credentials are "ambient: mounted, broad, always on"; imperative changes leave no commit to roll back to; "intent is lost to time"; and "containers isolate the process, but not *which repo* it can push to or *which API paths* it can call."
+
+![Why not just give the agent a kubeconfig?](images/agentic-gitops-rec-kubeconfig.jpg)
+
+*Frame from the official recording of "Agentic GitOps: Agent and Sandbox Guardrails with Flux," Leigh Capili and Tamao Nakahara.*
+
+The confinement tool is **`nono`**: kernel-enforced confinement for any process. The slide: Landlock on Linux and Seatbelt on macOS, with a default-deny filesystem; JSON profiles that "run unchanged on your laptop and in a Pod"; it "composes well with containers"; and "the sandbox is *decoupled* from the process and the infrastructure." You can iterate on a laptop with `nono shell` and `nono why` (why any access was allowed or denied), get an audit trail of every command, and keep the profile as JSON in Git so "your guardrails get code review too."
+
+Two controls go beyond what a NetworkPolicy or a container can do:
+
+- **L7 egress.** NetworkPolicy is L4: "can reach api.github.com: yes or no." nono's proxy filters by **method and path**, so you can allow only specific repos, resources, and verbs. Denied requests are stopped and audit-logged on the machine. The on-screen claim: "prompt-injecting the agent cannot read other repos, exfiltrate to a gist, or push anywhere else."
+- **Phantom tokens.** "The agent can *use* the credential but never *read* it." nono's supervisor holds the real secret; the child process gets decoy values (phantom tokens); the proxy swaps in the real credential on the wire, per route. Prompt injection can leak only the phantom credential, not the actual secret.
+
+![Credential injection: the agent holds a decoy, the supervisor holds the real secret, the proxy swaps it on the wire](images/agentic-gitops-rec-phantoms.jpg)
+
+*Frame from the official recording of "Agentic GitOps: Agent and Sandbox Guardrails with Flux," Leigh Capili and Tamao Nakahara.*
+
+The demo stacked those layers around a "capacity agent": a restricted pod (read-only roots, default-deny netpol), nono (Landlock, L7 egress, credential injection), a fine-grained GitHub PAT, a pull request, human review plus a CI gate, and Flux applying the change. On screen, a policy denied at least one `kubectl` invocation with an "AI Post-Action Summary," then allowed `kubectl get nodes`. Later, the agent opened a PR, `checkout: raise HPA maxReplicas 8 -> 12`. That is the abstract's "Prometheus metrics triggering resource tuning" example, landing as a reviewed Git change rather than a live `kubectl patch`. In the recording they also treated the nono profile JSON as a GitOps artifact and said PRs should run Flux schema checks plus `nono profile validate`.
+
+Q&A was blunt about trust. Asked "do we actually trust the sandbox?", Leigh's answer was "No." He uses virtual machines and dedicated infrastructure to run agents, and treats nono as a portable primitive that sits *alongside* containers and microVMs, not as a replacement for them. Tamao added that `nono proxy` on its own has a bypass: an agent can choose not to use it. `nono run` is what forces traffic through the proxy; using the proxy alone is "being a good citizen" and should not be trusted as enforcement.
+
+The closing line: "GitOps is about what we owe to each other — agents included," echoing the Flux ten-year retrospective: "GitOps cannot fully be embodied by our tools, but rather, GitOps is how we work with each other."
+
+**Takeaways for us:** keep agents off ambient cluster credentials; confine what they can call and which repo paths they can push to, with those rules in Git; validate the sandbox profile in CI the same way you validate Flux schemas; and let Flux apply only what passed review. `nono` is the concrete sandbox to evaluate alongside the kernel-isolation options from Day 3's Adobe talk, but only if you use `nono run` (not a standalone proxy) and do not treat the sandbox as the only boundary. Do not treat a demo profile as a production policy pack.
 
 ### etcd Operator, Rebuilt and Ready
 
@@ -681,9 +791,11 @@ They were explicit about what is native and what is theirs. The MCP Actions back
 
 ### Telemetry Colosseum: OTel Collector vs. Fluent Bit V5 vs. OTel-Arrow. Three Agents, One Crown
 
-Henrik Rexed, 15:20–15:45 MT, Salt Palace Level 2, 250 D–F. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1266933) · [Slides](https://sessionize.com/download/xjabqeq~PJ5NPMJ77V5gpo8YKzGdjr.pdf~telemetry-colosseum-otel-collector-vs.-fluent-bit-v5-vs.-otel-arrow.pdf).
+Henrik Rexed, 15:20–15:45 MT, Salt Palace Level 2, 250 D–F. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1266933) · [Slides](https://sessionize.com/download/xjabqeq~PJ5NPMJ77V5gpo8YKzGdjr.pdf~telemetry-colosseum-otel-collector-vs.-fluent-bit-v5-vs.-otel-arrow.pdf) · [Recording](https://www.youtube.com/watch?v=NxLQI4Os3TA). *Slides plus the official recording (added 20 November 2026). This is the North America 2026 talk, not the earlier Observability Summit recording.*
 
 A vendor-neutral bake-off of the OpenTelemetry Collector, Fluent Bit v5, and OTel-Arrow under the same Kubernetes conditions, covering design, plugins for logs/metrics/traces, self-observability, and load. The official abstract says the crown depends on the arena you fight in, and that configs and results will be published on GitHub. The conclusion slide is a comparison radar. Reading it cautiously: the Collector (red) leads most pipeline, Prometheus, and telemetry-metrics axes; OTel-Arrow (green) leads the OpenTelemetry-support axis and is weaker on Prometheus; Fluent Bit (blue, labeled "Fluenbit" on the slide) scores strongly on the memory-usage axis. I am not treating those axes as a single overall winner, and I am not assuming "cpu usage" / "memory usage" are scored in the same direction as "support." Use the published configs before changing our collectors.
+
+The recording walks the method behind the graphs. The numbers below are what he said while those graphs were on screen. The published results were a two-hour ramp-up: 50 users on the OpenTelemetry demo and 50 on Hipster Shop, adding 50 per app every 30 minutes, ending at 200 + 200. A 12-hour soak (cut from a planned 24 hours) was not presented because that run did not show a memory leak. One dip in the traces and logs was an app failure (the currency service), not the collector under test. On the all-OTLP run he called out Fluent Bit and OTel-Arrow at about 30 MB of memory and the Collector contrib build at about 200 MB. On the OTAP path, the translation Collector used most of the CPU and the OTel-Arrow engine used almost none, with about 1.6–1.8× fewer bytes on the wire — "already divided by two." His own spoken conclusion was that "the collector is the clear winner" today, that OTel-Arrow is promising if SDKs can emit OTAP directly (otherwise the translation just relocates the CPU), and that Fluent Bit can still cover most cases. For traces and sampling, he said the Collector is the way to go for now. In Q&A he added a personal preference for the Collector because of the plugin volume and because writing a plugin is easier for him than Fluent Bit's C plugins. He did not give a GitHub URL in the talk.
 
 ![Conclusion radar comparing Fluent Bit, the OpenTelemetry Collector, and OTel-Arrow](images/telemetry-p37.jpg)
 
@@ -691,9 +803,9 @@ A vendor-neutral bake-off of the OpenTelemetry Collector, Fluent Bit v5, and OTe
 
 ### Bootstrapping Edge Nodes When the SPIRE Server Is 200ms Away and Sometimes Gone
 
-Manan Chawda, 17:15–17:25 MT, Salt Palace Level 2, 255 A. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1269793) · [Slides](https://sessionize.com/download/izqasoc~SdWnzVkFE86KJ6sybPtCna.pdf~bootstrapping-edge-nodes-kubernetes-on-edge-day-na-2026-3.pptx.pdf).
+Manan Chawda, 17:15–17:25 MT, Salt Palace Level 2, 255 A. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/co-located-events/cncf-hosted-co-located-schedule/?id=1269793) · [Slides](https://sessionize.com/download/izqasoc~SdWnzVkFE86KJ6sybPtCna.pdf~bootstrapping-edge-nodes-kubernetes-on-edge-day-na-2026-3.pptx.pdf) · [Recording](https://www.youtube.com/watch?v=Bm5jkoFl1QI). *Slides plus the official recording (added 20 November 2026).*
 
-Lab-measured on SPIRE v1.15.5, K3s v1.33.5, and OPA 1.10, with multi-hour outages on an accelerated clock. A six-hour WAN outage with default SVID TTLs takes down local mTLS even though that path never uses the WAN. `join_token` does not recover after expiry ("already been used"); `tpm_devid` re-attested in 6 seconds with no human. Size lifetimes backward from the outage: for a 48-hour outage they used `availability_target=72h`, SVID TTL 96h, `ca_ttl=720h`, and kept `ca_ttl / 3` above the target — past a CA rollover, 0 of 4 recovered. Persist OPA bundles to a real volume; `emptyDir` plus the wrong failure policy either fails closed on good pods or fails open on bad ones. Only relevant if we run SPIRE in intermittently connected environments, but the "size the CA and SVID chain from the outage, not from a datacenter default" rule is generally useful.
+Lab-measured on SPIRE v1.15.5, K3s v1.33.5, and OPA 1.10, with multi-hour outages on an accelerated clock. A six-hour WAN outage with default SVID TTLs takes down local mTLS even though that path never uses the WAN — the timeline on the slide marks local mTLS starting to fail at T+35 minutes. `join_token` does not recover after expiry ("already been used"); `tpm_devid` re-attested in 6 seconds with no human. Size lifetimes backward from the outage: for a 48-hour outage they used `availability_target=72h`, SVID TTL 96h, `ca_ttl=720h`, and kept `ca_ttl / 3` above the target. That sized chain had zero mTLS failures across a 48-hour outage; a 90-hour outage, past the 72h target, failed at 73 hours and recovered in 12 seconds with no human. A separate experiment with the default `ca_ttl=24h` is the "0 of 4 recovered" result: a 9-hour outage across a CA rollover recovered in 3 of 4 runs, and a 13-hour outage recovered in none. Persist OPA bundles to a real volume; `emptyDir` plus the wrong failure policy either fails closed on good pods or fails open on bad ones. Only relevant if we run SPIRE in intermittently connected environments, but the "size the CA and SVID chain from the outage, not from a datacenter default" rule is generally useful. There was no audience Q&A; the spoken close was to test this outage path before it happens in production.
 
 ![Five takeaways for a SPIRE edge fleet, including TPM bootstrap and sizing lifetimes from the outage](images/spire-edge-p09.png)
 
@@ -712,37 +824,16 @@ Searches on X for FluxCon and BackstageCon (9–12 Nov) mostly returned booth an
 
 ## Sources
 
-Rechecked against the live Sessionize APIs (`ayajbd6b` colocated, `svi82w6c` main) on the morning of Tuesday 10 November 2026. One primary deck URL had changed since the previous day: "Can Your Agent Execute Anything?" now points at the `ikjacwei~…` upload listed above. Public X posts were rechecked on 15 November 2026 for post-conference recaps; the new Flux 2.10 mention is cited under "Flux After 10 Years" above, with the official release date confirmed against GitHub.
+Rechecked against the live Sessionize APIs (`ayajbd6b` colocated, `svi82w6c` main) on the morning of Tuesday 10 November 2026. One primary deck URL had changed since the previous day: "Can Your Agent Execute Anything?" now points at the `ikjacwei~…` upload listed above. Public X posts were rechecked on 15 November 2026 for post-conference recaps; the new Flux 2.10 mention is cited under "Flux After 10 Years" above, with the official release date confirmed against GitHub. Rechecked Sessionize and the official CNCF YouTube channel again on 20 November 2026: no new Day 1 decks were uploaded, and official recordings were posted for the colocated sessions listed under "slides plus the official recording" and "the official recording" below. Two Day 1 talks still have neither slides nor a recording.
 
 ### Based on uploaded slides plus the official recording
 
-Recordings are the official CNCF YouTube uploads, reviewed on 11 November 2026.
+Recordings are the official CNCF YouTube uploads, reviewed on 11 November 2026 for the BackstageCon talks and on 20 November 2026 for the additional Monday colocated talks.
 
 **Primaries**
 
 - From Geological Layers to NFS: Migrating a Decade of Backstage with AI
 - Can Your Agent Execute Anything? Authorization for Backstage MCP Actions
-
-**Backups**
-
-- How Ericsson Combines Human Judgment to Enhance AI-Powered Capabilities Through Backstage
-- Your Backstage Portal Just Became an AI App Store
-- Who Owns This? Automating Backstage Catalog Ownership at Scale
-
-### Based on the official recording (no slides posted)
-
-**Primaries**
-
-- IDPs Are Dead: Platform Engineering in the Age of AI Agents
-
-**Backups**
-
-- Your Agent Shouldn't Log in as You: Identity for MCP in Backstage
-
-### Based on uploaded slides
-
-**Primaries**
-
 - Kueue, DRA, and WAS: The Kubernetes Scheduling Triangle
 - Architecting the Agentic Data Plane: Scaling MCP
 - License to Generate: Securing AI Agents with Keycloak, SPIRE, and Envoy
@@ -750,21 +841,34 @@ Recordings are the official CNCF YouTube uploads, reviewed on 11 November 2026.
 
 **Backups**
 
+- How Ericsson Combines Human Judgment to Enhance AI-Powered Capabilities Through Backstage
+- Your Backstage Portal Just Became an AI App Store
+- Who Owns This? Automating Backstage Catalog Ownership at Scale
 - From Helmfile to Flux: GitOps for Telco at Enterprise Scale
 - Telemetry Colosseum: OTel Collector vs. Fluent Bit V5 vs. OTel-Arrow. Three Agents, One Crown
 - Bootstrapping Edge Nodes When the SPIRE Server Is 200ms Away and Sometimes Gone
+
+### Based on the official recording (no slides posted)
+
+**Primaries**
+
+- IDPs Are Dead: Platform Engineering in the Age of AI Agents
+- Flux After 10 Years: GitOps for Humans and Agents
+- Zero-Touch App Team Onboarding: Powering Self-Service Kubernetes at Enterprise Scale with Flux
+
+**Backups**
+
+- Your Agent Shouldn't Log in as You: Identity for MCP in Backstage
+- Agentic GitOps: Agent and Sandbox Guardrails with Flux
 
 ### Based only on the official session abstract (no slides or recording yet)
 
 **Primaries**
 
-- Flux After 10 Years: GitOps for Humans and Agents
-- Zero-Touch App Team Onboarding: Powering Self-Service Kubernetes at Enterprise Scale with Flux
 - What Changes When Crossplane Adoption Gets Real
 
 **Backups**
 
-- Agentic GitOps: Agent and Sandbox Guardrails with Flux
 - etcd Operator, Rebuilt and Ready
 
 ---

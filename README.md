@@ -4,9 +4,9 @@ Personal daily session notes from KubeCon + CloudNativeCon NA 2026 (Salt Lake Ci
 
 | Day | Date | Notes |
 | --- | --- | --- |
-| Day 1 | Monday, Nov 9 | [day1](day1/README.md) — updated Nov 11 with 7 BackstageCon recordings |
-| Day 2 | Tuesday, Nov 10 | [day2](day2/README.md) |
-| Day 3 | Wednesday, Nov 11 | [day3](day3/README.md) |
+| Day 1 | Monday, Nov 9 | [day1](day1/README.md) — updated Nov 20 with additional colocated recordings |
+| Day 2 | Tuesday, Nov 10 | [day2](day2/README.md) — updated Nov 20 with the Platform Engineering after the AI Hype deck |
+| Day 3 | Wednesday, Nov 11 | [day3](day3/README.md) — updated Nov 20 with the Quota Isn't Enough deck |
 | Day 4 | Thursday, Nov 12 | [day4](day4/README.md) |
 | Community | Nov 9–15 | [community](community/README.md) — themes, project news, and post-conference “what people are taking home” notes from posts on X; session-specific posts are cited in each day |
 

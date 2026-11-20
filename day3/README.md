@@ -4,9 +4,9 @@ Session notes from the second main-conference day in Salt Lake City, written for
 
 The takeaways and recommended next steps assume we already run Backstage and Flux in production. They are about extending, hardening, or improving that setup, not about adopting either tool.
 
-Times are Mountain Time, labeled MT, and come from the live Sessionize schedule, re-fetched on Wednesday 11 November 2026. Slide links are the official Sessionize "Presentation Slides" uploads from that same pull. Where a deck existed, the notes below are taken from that deck. Where it did not, the notes are labeled as based only on the official abstract. One exception: the Running Secure Agents deck was published by the speaker on his own site and linked from X on 12 November, so that section is labeled accordingly. The itinerary keeps the whole Crossplane ContribFest block (11:00–12:20); the 11:50 RISC-V backup is the alternative to that entire block.
+Times are Mountain Time, labeled MT, and come from the live Sessionize schedule, re-fetched on Wednesday 11 November 2026. Slide links are the official Sessionize "Presentation Slides" uploads from that same pull, rechecked on 20 November 2026 when the Quota Isn't Enough deck appeared. Where a deck existed, the notes below are taken from that deck. Where it did not, the notes are labeled as based only on the official abstract. One exception: the Running Secure Agents deck was published by the speaker on his own site and linked from X on 12 November, so that section is labeled accordingly. The itinerary keeps the whole Crossplane ContribFest block (11:00–12:20); the 11:50 RISC-V backup is the alternative to that entire block.
 
-**Recordings.** As of the evening of 11 November 2026, CNCF has posted the Wednesday keynotes on its YouTube channel, but none of the Wednesday breakout sessions below. The keynote section is based on those official recordings. YouTube captions were rate-limited, so the speech was transcribed automatically. Quotes are kept short, and product names and numbers were checked against the slides on screen where possible. A YouTube video titled "Crossplane - The Cloud Native Framework for Platform Engineering" does exist, but it was uploaded in April 2026 from KubeCon Europe, so it is not this session and is not used here.
+**Recordings.** As of 20 November 2026, CNCF has posted the Wednesday keynotes on its YouTube channel, but still none of the Wednesday breakout sessions below. The keynote section is based on those official recordings. YouTube captions were rate-limited, so the speech was transcribed automatically. Quotes are kept short, and product names and numbers were checked against the slides on screen where possible. A YouTube video titled "Crossplane - The Cloud Native Framework for Platform Engineering" does exist, but it was uploaded in April 2026 from KubeCon Europe, so it is not this session and is not used here.
 
 ---
 
@@ -37,7 +37,7 @@ flowchart TB
 
 **CI is the safety net for machine-written change.** The Robust CI talk is about a GitOps repo serving hundreds of clusters, with pull requests from humans, AI, and automation. Its answer is a single Go binary that runs deterministic validation, including CEL rules from CRD schemas and ported API-server validation, before review. That pairs with Tuesday's Flux MCP and schema-catalog work: ground the agent, then verify what it wrote.
 
-**Agents and GPUs need their own scheduling and isolation.** Adobe's Running Secure Agents deck, shared on X after the talk, runs one browser-agent workload on five sandbox backends and treats lifecycle, runtime, and policy as separate decisions. ScaleOps' keynote described agents as idle most of the time with CPU spikes. The Quota Isn't Enough abstract argues that GPU quota alone no longer predicts whether a large job runs; NVLink domains and rack topology do. GPU Observability with eBPF showed that held GPU memory and GPU activity are not the same thing.
+**Agents and GPUs need their own scheduling and isolation.** Adobe's Running Secure Agents deck, shared on X after the talk, runs one browser-agent workload on five sandbox backends and treats lifecycle, runtime, and policy as separate decisions. ScaleOps' keynote described agents as idle most of the time with CPU spikes. The Quota Isn't Enough deck shows that GPU quota alone no longer predicts whether a large job runs well: on GB200 NVL72, a 3+1 placement was 2.7× slower than the same four nodes in one rack, and TAS makes required, preferred, or sliced topology a scheduling request. GPU Observability with eBPF showed that held GPU memory and GPU activity are not the same thing.
 
 ---
 
@@ -52,6 +52,8 @@ flowchart TB
 4. **Make lifecycle explicit for infrastructure we reconcile.** If we use Crossplane, set management policies on purpose: ObserveOnly for imported resources, Provision (no Delete) for anything stateful, and plan the v2 migration knowing `deletionPolicy` is gone for namespaced resources. The `function-lifecycle` pattern (one switch per XR, unknown mode is a fatal error, never falls back to Full) is a good template. On the Flux side, apply the Day 2 Meltdown guards.
 
 5. **Give developers a smaller interface on top of Flux, through Backstage.** Meta's `pipeline.yaml` asks developers three questions (what, where, how) and generates the rest. CVS Health asks whether a new hire can ship to production on their first morning. Our equivalent is a Backstage template that writes a small, validated app definition into Git and lets Flux and the CI gate in step 1 do the rest. Measure how long a brand-new service takes to reach production today.
+
+6. **If we schedule multi-node GPU work, treat topology as a first-class request, not a quota afterthought.** The Quota Isn't Enough deck is the production half of Day 1's Kueue briefing: prefer `podset-preferred-topology` before a required or sliced constraint, and remember that preemption checks shape, not just GPU count. The 2.7× and 18× figures are for GB200 NVL72; measure our own hardware before copying those knobs.
 
 ---
 
@@ -336,17 +338,48 @@ sequenceDiagram
 - **Time:** 16:10–16:40 MT · Salt Palace Level 1, Grand Ballroom GI
 - **Speakers:** Amy Chen (CoreWeave), JJ Jordan (Cohere)
 - **Session:** [Quota Isn't Enough](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1236394)
-- *Based on the session abstract (no slides or recording posted yet).*
+- **Slides:** [Presentation slides (PDF)](https://sessionize.com/download/mqadcey~HdPa7udyZ7DvKezkfk2jaP.pdf~quota-isnt-enough_-topology-aware-scheduling-on-modern-gpu-clusters.pdf)
+- *Based on the official uploaded slides (added 20 November 2026). No recording posted yet.*
 
-With GB200 and GB300 systems, fragmentation widens the gap between "I have GPU quota" and "my job is actually running." NVLink domains, rack boundaries, and datacenter layout now decide whether a large training job can start, where it lands, and how fast it runs. Kueue's Topology Aware Scheduling (TAS) brings that into Kubernetes. The talk promises three parts: how TAS works and which configuration choices matter (preferred vs required topologies, PodSet slices); how topology-aware placement affects performance; and production lessons that are not on the happy path (sticky scheduling, quota debugging, fragmentation, and node hot swaps).
+With NVL72 Grace/Blackwell racks, "I have GPU quota" no longer means "my job can run well." One rack is 72 GPUs in a single NVLink domain, and that is the unit of compute. The deck's communication table is stark: HBM3e at 8,000 GB/s, NVLink 5 at 900 GB/s (18×), NVLink-C2C at 450 GB/s, PCIe Gen5 P2P at 64 GB/s, and InfiniBand at 50 GB/s (1×). The H100 network cliff was 4.5×; on this hardware it is 18×. Crossing a rack boundary on a collective is not a small penalty.
+
+The awkward arithmetic: ML jobs want powers of two (2, 4, 8, 16, 32, 64), and the rack gives you 72, so 64 becomes the practical unit for large jobs and 8 GPUs are left over in every rack.
+
+![Same four nodes, same NCCL all-reduce: one stranded node makes the job 2.7× slower](images/quota-tas-p09.png)
+
+*Slide from "Quota Isn't Enough: Topology Aware Scheduling on Modern GPU Clusters," JJ Jordan and Amy Chen.*
+
+Placement is measured, not just argued. On the same four nodes, the same NCCL all-reduce test (8 GB message size, GB200 NVL72, 4 GPUs per node, rack boundary crossed over InfiniBand), only placement changed: same rack, 4 nodes in one NVLink domain, **908 GB/s busbw**; split 2+2 across two racks in the same superpod, **727 GB/s** (20% less); split 3+1 with one node stranded, **335 GB/s**, **2.7× slower**, because "one stranded node sets the pace for all four." That is the number behind the closing takeaway "good placement is worth 2.7× on the same hardware."
+
+Kueue TAS decides the whole job at admission, before any pod exists. An admin sets up a `Topology` (the shape of the hardware), a `ResourceFlavor` (which nodes, which shape), and a `ClusterQueue` (how much). The user adds one pod-template annotation, for example `kueue.x-k8s.io/podset-required-topology`, with "no nodeSelector, no affinity rules." Kueue then asks: does this fit quota; does this fit the shape (which racks have room for a 64); and then pins rack and node into the Workload so kube-scheduler obeys the `nodeSelector`. The deck's one-line split: "Quota answers 'how much.' Topology answers 'where.'"
+
+![TAS in 90 seconds: Topology, ResourceFlavor, and ClusterQueue, then one user annotation and three admission steps](images/quota-tas-p12.png)
+
+*Slide from "Quota Isn't Enough: Topology Aware Scheduling on Modern GPU Clusters," Amy Chen and JJ Jordan.*
+
+The knobs, and the failure mode each one chooses:
+
+- `podset-required-topology`: one domain, or wait.
+- `podset-preferred-topology`: one domain if you can, spill if not. "Best shape available right now, then go. Fails degraded: slower run, never pending." The deck assigns this to post-training and smaller runs.
+- `podset-unconstrained-topology`: anywhere, fill the gaps. TAS still tracks them. Never blocked, no shape promise. Inference and single-node work.
+- `podset-slice-required-topology` plus `podset-slice-size` (for example 64 and 64, not 72 and 56): every slice lands in one rack, or nothing runs. "Fails blocked: sits pending until the shape exists." The deck assigns this to pretraining, the largest runs, highest priority, most money.
+
+A greedy 128-GPU placement that fills one NVL72 rack (72) and spills 56 into the next leaves uneven groups on each side of the NVLink boundary: "NCCL falls back to slower collectives, or crashes. Nvidia does not test this shape." A balanced 64+64 keeps 3 of 4 collective rounds on NVLink; the price is 8 GPUs idle per rack.
+
+Production lessons that are not on the happy path:
+
+1. **Test placement without burning GPUs.** A carefully shaped HPC-V test pod (no `queue-name` label, `podset-unconstrained-topology: "true"`, `PriorityClass -1`) looks free to Kueue because it is not a Workload, while kube-scheduler sees the GPUs as used. "Kueue admits customer jobs onto node-17 as if it were empty. kube-scheduler evicts the hpc-v pod. Kueue never learns it was there." A useful trick, and a footgun if something else is invisible to quota the same way.
+2. **Preemption checks shape, not just count.** A 64-GPU job can sit pending while two 32-GPU lower-priority jobs run, because evicting both can leave 32 free in each of two racks, and the pending job needs 64 in one rack. "Kueue will not evict two jobs to end up exactly where it started."
+3. **Hot swap one node, keep the other 63.** When a node in a 64-node run dies, restarting the whole job waits on a new 64-node placement, data load, checkpoint load, and JIT compile, with 63 healthy nodes idle. TAS can rewrite a single `topologyAssignment` entry (cordon the dead node, add a spare in the same rack) and leave the other 63 pods where they are.
+4. **Fragmentation is "mostly unsolved (for now)."** Total free GPUs can stay high while the largest rack-aligned free block shrinks. "Entropy only goes up. Every job that starts or finishes scatters free GPUs a little more."
+5. **Hero workloads and quota walls.** Inference can fill the leftover 8-GPU gaps that training cannot use. But a hero job that needs a whole rack can be refused when quota says yes and topology says no, because "Kueue will not preempt inside another ClusterQueue's nominalQuota, even when topology demands it." The workaround on the slide is operational: taint the rack `NoSchedule`, evict the tenants, and let Kueue re-admit them where they fit. The deck points at [kubernetes-sigs/kueue #13396](https://github.com/kubernetes-sigs/kueue/issues/13396) for configurable preemption — preempt for topology, not just quota; bigger jobs may move smaller ones; defrag when a job needs it, not on a schedule. That is a cited proposal, not something this deck claims has shipped.
 
 **Key takeaways**
 
-- **Watch, as a continuation of Day 1's Kueue / DRA / WAS session**, which said Kueue's native TAS is Beta and on by default. This talk is the production-experience half.
-- **Try preferred topology before required** if we ever run multi-node GPU jobs. A required topology that cannot be met just waits; the abstract lists quota debugging and fragmentation as real operational costs.
-- **Risk:** GB200/GB300-scale lessons may not apply to small or shared GPU pools. Do not adopt topology constraints without measuring that they improve our jobs.
-
----
+- **Watch this as the production half of Day 1's Kueue / DRA / WAS session**, which said Kueue's native TAS is Beta and on by default. The new detail is that the failure mode is a scheduling request: required or sliced shape that waits, preferred that degrades, or unconstrained that fills gaps.
+- **If we ever run multi-node GPU jobs, do not treat quota-by-count as placement.** Try preferred topology before required unless the job is in the "wait for the exact shape" class. A required topology that cannot be met just waits, and preemption will not invent a rack-aligned block from two half-racks.
+- **Measure placement.** The 2.7× figure is for this NCCL test on GB200 NVL72, not a universal speedup. The 18× rack-boundary cliff is also specific to this generation; the deck contrasts it with H100's 4.5×.
+- **Risk:** GB200/NVL72-scale lessons may not apply to small or shared GPU pools. Do not copy required topology, slice sizes of 64, or a drain-the-rack hero workaround without measuring that they improve our jobs. Treat issue #13396 as a proposal to watch, not as a shipped fix for fragmentation.
 
 ### Running Secure Agents at Scale
 
@@ -499,7 +532,7 @@ We found no recap posts, slides, or corrections on X for the other Day 3 session
 
 ## Sources
 
-Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wednesday 11 November 2026. Two backup deck URLs had changed since the original schedule was built ("Death by a Thousand Patches" and "Robust CI as a Safety Net"); the links above are the current ones. Recordings were searched on the official CNCF YouTube channel the same day; only the keynotes have been posted.
+Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wednesday 11 November 2026. Two backup deck URLs had changed since the original schedule was built ("Death by a Thousand Patches" and "Robust CI as a Safety Net"); the links above are the current ones. Recordings were searched on the official CNCF YouTube channel the same day; only the keynotes have been posted. Rechecked Sessionize and the official CNCF YouTube channel again on 20 November 2026: the Quota Isn't Enough deck is now on Sessionize and is covered above; still no Wednesday breakout recordings.
 
 ### Based on the official recording (keynotes, no slides)
 
@@ -522,6 +555,7 @@ Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wedne
 
 - Crossplane Contribfest - Start Your Journey to Crossplane Function Maintainer
 - Green Dashboards, Broken Clusters: Taming Stale Watches in Kubernetes Operators
+- Quota Isn't Enough: Topology Aware Scheduling on Modern GPU Clusters
 - Running Secure Agents at Scale (the speaker's own published deck, linked from X on 12 November; not a Sessionize upload)
 
 **Backups**
@@ -537,7 +571,6 @@ Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wedne
 **Primaries**
 
 - Crossplane - The Cloud Native Framework for Platform Engineering
-- Quota Isn't Enough: Topology Aware Scheduling on Modern GPU Clusters
 
 ---
 

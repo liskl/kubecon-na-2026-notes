@@ -6,7 +6,7 @@ The takeaways and recommended next steps assume we already run Backstage and Flu
 
 Times are Mountain Time, labeled MT, and come from the live Sessionize schedule, re-fetched on Wednesday 11 November 2026. Slide links are the official Sessionize "Presentation Slides" uploads from that same pull, rechecked on 20 November 2026 when the Platform Engineering after the AI Hype deck appeared. Where a deck existed, the notes below are taken from that deck. Where it did not, the notes are labeled as based only on the official abstract.
 
-**Recordings.** As of 20 November 2026, CNCF has posted the Tuesday keynotes on its YouTube channel, but still none of the Tuesday breakout sessions below. The keynote section is based on those official recordings. YouTube captions were rate-limited, so the speech was transcribed automatically. Quotes are kept short, and product names and numbers were checked against the slides on screen where possible. The 09:00 "Welcome + Opening Remarks" segment was posted later and was added to these notes on 12 November 2026.
+**Recordings.** As of 24 November 2026, CNCF has posted official recordings of the Tuesday keynotes and of every Tuesday breakout session in these notes; the breakout recordings were found on 23 November. Each section links its recording and says what it is based on. YouTube captions were rate-limited, so the speech was transcribed automatically, and unclear passages are left out rather than guessed. Quotes are kept short, and product names and numbers were checked against the slides on screen where possible. The 09:00 "Welcome + Opening Remarks" segment was posted later and was added to these notes on 12 November 2026.
 
 ---
 
@@ -224,7 +224,8 @@ Robotics needs three computers: simulation, training, and on-device inference. N
 - **Speakers:** Dakota Sullivan (The Trade Desk), Isaac Wilson (Elastic)
 - **Session:** [Saturated by Design](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1250350)
 - **Slides:** [Presentation slides (PDF)](https://sessionize.com/download/ccaosmeh~YJrUKLfo2PG87KXNnMWPX8.pdf~saturated-by-design.pdf)
-- *Based on the uploaded slides (no recording posted yet).*
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=U_R6VG9OQiE)
+- *Based on the uploaded slides plus the official recording; speech transcribed automatically, unclear audio left out.*
 
 The Trade Desk runs about 10 on-prem datacenters, most with one Kubernetes cluster of 1,500–3,000 nodes. On-prem capacity is fixed, so unused allocation is wasted money. Their workload mix is lumpy: whole-node pods (25%), half-node (55%), one-fifth-node (5%), and one-twentieth-node (15%). Big pods only fit if smaller ones are packed tightly. They worked through four problems in order, and each step raised allocation:
 
@@ -251,6 +252,14 @@ flowchart LR
   D --> E["Bento<br/>elastic right-sizing<br/>~99.9%"]
 ```
 
+**From the recording.** Sullivan added context for the 20% starting point: it comes from pods that take a whole node. With pods smaller than nodes, the default LeastAllocated scoring is "probably a lot closer to 60%, 80%." Some of their pods take 10–15 minutes to shut down, which is why terminating pods matter so much during rollouts. From Q&A:
+
+- **Disruption cost:** in a rolling update, new pods land where the old ones were about 98% of the time in their clusters, so defragmentation evictions are rare.
+- **Autoscalers:** Bento does no metric-based autoscaling yet, because on-prem workloads are predictable; it is essentially a drop-in replacement for an HPA, and metric-based scaling is being considered. Their data centers ran at 90–95% allocation even before Kubernetes, so an HPA would have had nowhere to scale. For them the capacity constraint mattered more than real load. They are also looking at hybrid clusters where one workload can scale out into the cloud.
+- **Workloads:** real-time bidding with a deadline of about 100 ms, highly elastic (requests can be dropped early), with model serving, web servers, and caches; some take an hour to warm up.
+- **Cloud:** most of this will not matter unless you are at your provider's capacity limits or cannot run Karpenter or the cluster autoscaler.
+- **Determinism:** Bento's simulation is not deterministic, because Kubernetes scheduling is not; it is "a Monte Carlo type problem," and the other fixes narrow the distribution.
+
 **Key takeaways**
 
 - **Try MostAllocated first** if any of our clusters are fixed-size and we are short on room for large pods. It is a scheduler profile change, and their own slide says it is often enough.
@@ -266,7 +275,8 @@ flowchart LR
 - **Speaker:** Daniel Bryant (Syntasso)
 - **Session:** [Platform Engineering after the AI Hype](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1249819)
 - **Slides:** [Presentation slides (PDF)](https://sessionize.com/download/jtajsep~ERrVof2mtRuc1kFhBt3qWe.pdf~kubecon-na-platform-engineering-after-the-ai-hype_-why-idps-must-become-intent-driven-final-v1.pdf)
-- *Based on the official uploaded slides (added 20 November 2026). No recording posted yet.*
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=Sv5VwI7uQX0)
+- *Based on the official uploaded slides (added 20 November 2026) plus the official recording; speech transcribed automatically, unclear audio left out.*
 
 The deck opens against a growing narrative: that AI will remove the need for structure in software delivery, and that you can "simply prompt your way to production systems." Bryant quotes Phill Morton and The Access Group's platform team: infrastructure is about consistency, security, scalability, and the ability to evolve, and "when every output is generated from scratch [everytime], you lose the guarantees that platforms are designed to provide." He points at Syntasso's [Q2 experiment write-up](https://syntasso.io/post/lessons-from-putting-ai-in-front-of-a-platform) and at similar arguments from others (including linked posts by Adam Jacob and Jaana Dogan), then steps back to what the first wave of platforms actually did.
 
@@ -305,12 +315,15 @@ The five questions on the closing checklist: could an agent use the platform wit
 
 Related, from the recordings: on Wednesday, Bryant's colleague Abby Bangser gave a keynote with The Access Group on the "marketplace" platform model (see the Day 3 notes).
 
+**From the recording.** On "nobody owns day 2," Bryant cited the 2012 Knight Capital loss from a reused config flag and warned that at agent speed "we're gonna probably see a billion dollar mistake," because agents have the excuse "you prompted me to create it, but you didn't actually ask me to maintain it." His own infrastructure-team experience: handing out templates lost his "flow of value." Teams forked and modified them, and when he was asked to upgrade every Postgres, he did not know where they all were. A capability that keeps the link back to its producer lets the producer roll out changes. His example: an agent creates an orders database, there are 47 other instances, a CVE lands, and the producer upgrades the capability once and rolls it across the fleet. That is a Kratix Promise update, Crossplane composition revisions (automatic update policy, or manual and canary), or KubeVela's semver-versioned definitions. He pointed to the CNCF Platform Engineering group's platform capabilities white paper as closely matching his thinking. His closing line: "AI is your newest platform consumer. Give it intentional capabilities, not infrastructure."
+
 **Key takeaways**
 
 - **Improve the Backstage we already run, don't replace it.** The unit an agent should call is a capability with policy baked in ("a database for this service, compliant by default"), not a raw template that emits YAML plus a README. That is the same direction as Day 1's "IDPs Are Dead" talk.
 - **Try Bryant's five questions on our templates and Flux paths this week.** The ones that only work because a human reads the wiki first are the ones an agent will misuse.
 - **Encode policy in the capability, and make someone own day 2.** Guardrails should explain the right answer, not only reject the wrong one. Whatever an agent is allowed to create, a producer should be on the hook to upgrade, patch, and delete it.
 - **Risk:** "intent-driven" can become a new abstraction layer that only the platform team understands. Day 1's Crossplane adoption talk warned about exactly that. Also, the deck names Crossplane MRAPs and management policies as examples of guardrails, not as a requirement to adopt Crossplane for this.
+- **Keep the link from every template output back to its producer.** For each Backstage template that creates infrastructure, check that the platform team can find every instance and roll an upgrade through Flux, rather than having handed out a fork. If an agent created 47 databases from it, could we patch all of them in one change?
 
 ### The Operator Calls Are Coming from Inside the Namespace
 
@@ -318,7 +331,8 @@ Related, from the recordings: on Wednesday, Bryant's colleague Abby Bangser gave
 - **Speaker:** Justin O'Leary
 - **Session:** [The Operator Calls Are Coming from Inside the Namespace](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1247376)
 - **Slides:** [Presentation slides (PDF)](https://sessionize.com/download/vsakmey~BGkrSB7XZ14TAWGmSZV1di.pdf~the-operator-calls-kubecon-2026.pdf)
-- *Based on the uploaded slides (no recording posted yet). Vendor responses below are the speaker's account.*
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=LJCCOXRDY4I)
+- *Based on the uploaded slides plus the official recording; speech transcribed automatically, unclear audio left out.*
 
 This is the confused-deputy problem (CWE-441) in cloud operators. The attacker is a "namespace user": any identity that can `kubectl apply` in one namespace, including CI/CD and GitOps bots, with zero cloud IAM. The operator holds the cloud keys. If a user can name the target in a custom resource and the operator never checks who asked, the user acts with the operator's authority. "The boundary held. The call still got out. Through your own operator."
 
@@ -365,12 +379,15 @@ What closes it: verify the caller (for example with a SubjectAccessReview), auth
 
 *Slide from "The Operator Calls Are Coming from Inside the Namespace," Justin O'Leary.*
 
+**From the recording.** O'Leary's framing of the Crossplane case: managing org-wide access from Git is a legitimate use, and doing it needs a provider role that can rewrite the org's access list, so "the correct install and the vulnerable install are the same." He noted that Crossplane v2 made these resources namespaced by default, which is how a regular user reaches them. On his "can I just" list, he added one point the deck only implies: he tested a scoped-down operator and it could still grant access to a stronger one, so least privilege "just takes more steps." His summary of the disclosures: four vendors changed documentation and none changed code, although GCP has fixed the same shape in its own cloud on other products, so "the question isn't whether it can be fixed, it's whether anyone's willing to." He closed by noting that the core idea comes from a 1988 paper (the confused deputy). In Q&A he said he had not opened fix PRs against the open-source projects, because their non-goals responses told him they would not take the fix; he focused on documenting why they should.
+
 **Key takeaways**
 
 - **Run the three-question audit on our own controllers:** which hold real credentials, can a user name the target, and does it check the caller before acting? Start with Flux. A Flux tenant Kustomization or HelmRelease reconciled with the controller's own cluster-admin identity is the same shape: a tenant names the target, and the controller applies it with its authority. Confirm we use per-tenant `serviceAccountName`, with impersonation enforced by Flux's multi-tenancy lockdown (default service account and no cross-namespace references).
 - **If we run Crossplane, Config Connector, ASO, or ACK,** treat org-, subscription-, and account-level IAM resources as platform-team-only. Deny them in tenant namespaces at admission until upstream adds caller checks, accepting his point that this is a stopgap.
 - **Correlate audit logs.** Make sure the Kubernetes audit log is on and retained alongside the cloud audit log, so that "the operator did it" can be traced to which tenant object triggered it.
 - **Risk:** the vendor dispute is the speaker's account; the vendors' positions are that these are documented behaviors. For us the distinction does not matter: the documented behavior is the risk.
+- **Do not count on least privilege alone.** His live test showed a scoped-down operator could still grant access to a stronger one. Check, for each controller Flux deploys for us, whether its credentials can create or bind identities more powerful than its own.
 
 ---
 
@@ -380,7 +397,8 @@ What closes it: verify the caller (for example with a SubjectAccessReview), auth
 - **Speakers:** Muhammed Yunas Chirayath, Ajmal Ali Kannu
 - **Session:** [The SRE Is Not Dead](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1250770)
 - **Slides:** [Presentation slides (PDF)](https://sessionize.com/download/ixdansem~3kzrWssu5xxerSXGZjjTLy.pdf~the-sre-is-not-dead-for-employer-review.pptx.pdf)
-- *Based on the uploaded slides (no recording posted yet). The deck labels its scenarios as illustrative design principles, not any employer's incidents.*
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=VWLqmL-WYl4)
+- *Based on the uploaded slides plus the official recording; speech transcribed automatically, unclear audio left out.*
 
 The setup: dashboards were green while reports were late. Three replays show an AI incident assistant that reasoned well on what it could see and still got it wrong.
 
@@ -423,12 +441,15 @@ flowchart LR
 
 Their Monday list: put deploys on the incident timeline, keep ownership data fresh, page on SLO burn rather than CPU, and make AI show its evidence. The evaluation metrics are explicitly proposed, not results: time to the first correct hypothesis, hypothesis accuracy, evidence coverage, page quality, and MTTR against a baseline.
 
+**From the recording.** Beyond MTTR trends, the speakers valued on-call feedback such as "this summary saved my 10 minutes" over "any of the green dashboards." Their framing: "not AI versus SREs. It is AI SREs": AI looks at the evidence, and engineers bring judgment and responsibility. In Q&A, asked whether the agent does better when it knows what data is missing, they said yes: it should say "I don't have this information" rather than produce an answer that leads to a wrong fix. Asked about hallucinated evidence (numbers attributed to a telemetry query that turn out to be wrong, costing 30 minutes at 2 a.m.), they acknowledged that hallucination is still a problem. Their mitigations were citing evidence for every claim in the summary, keeping the decision with the engineer, and a feedback loop that reviews the agent's output in post-incident reviews.
+
 **Key takeaways**
 
 - **Feed Flux events into the incident timeline.** Route notification-controller events (Kustomization and HelmRelease revision, status, time) to the place on-call reads alerts, so "what changed at 14:02" is one click away. That is the gap in replay 1.
 - **Make Backstage the ownership source on every page.** Replay 3 is the Day 1 ownership talk's warning in incident form: a stale `spec.owner` routes a page to the wrong team. Route alerts using catalog ownership and fix stale owners at the source.
 - **Adopt the READ / SUGGEST / ACT boundary** for any AI incident helper we pilot, with a read-only, audited tool gateway, and require cited evidence per claim.
 - **Risk:** these are design principles with illustrative scenarios and proposed metrics, not a measured deployment. Set our own baseline before claiming an MTTR win.
+- **Review the AI helper's summaries in post-incident reviews.** If we add one, check each cited number against the real Flux event or metric it claims to come from. Hallucinated evidence was the failure the speakers could not fully rule out.
 
 ---
 
@@ -437,15 +458,53 @@ Their Monday list: put deploys on the incident timeline, keep ownership data fre
 - **Time:** 16:40–17:10 MT · Hyatt Regency Level 4, Regency Ballroom B
 - **Speakers:** Tim Hockin, Dmitry Berkovich (Google)
 - **Session:** [Kubernetes Solutions for Agent-Shaped Problems](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1248040)
-- *Based on the session abstract (no slides or recording posted yet). The same speakers presented Agent Substrate in the morning keynote (see above).*
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=G-8hPDtRVB8)
+- *Based on the official recording (no slides posted on Sessionize). YouTube captions were rate-limited, so the speech was transcribed automatically. A few stretches of the demo and Q&A were unclear and are left out rather than guessed. The same speakers presented Agent Substrate in the morning keynote (see above).*
 
-Agents and agent-like workloads are becoming a predominant class of workload on Kubernetes, but they differ from "traditional" apps, and the last 18 months made those differences stark. Agent Substrate ([ate.dev](http://ate.dev)), launched in May, aims to make agent-like workloads easy and efficient to run. It uses Kubernetes for what it is best at, then adds a lightweight control plane, active session management, and network-triggered wake-ups. The abstract claims this runs "orders of magnitude more" agent-like workloads, with lower latency and higher throughput.
+Hockin and Berkovich arrived at the same conclusions from different directions: agents are a large new workload class, and the obvious way to run them on Kubernetes works badly. Agent workloads are **bursty** (wake for 100 ms to half a minute, then idle), run **untrusted code** that has to live in a sandbox (so no sharing one place between agents), and usually have a **human in the loop** who wants an immediate answer.
+
+The obvious pattern is one sandbox pod per session. Sandbox pods start more slowly; they have seen startups of 15 seconds, 30 seconds, or a couple of minutes. Between turns, the pod's requests stay reserved and the resources are wasted; when the user leaves, a timeout saves history to a database. The result is "terrible utilization and long tail latency." Sophisticated teams instead run one large pod with a small manager that creates many sandboxes inside it, and then find themselves building a control plane for those managers across nodes. "We're forcing users to choose between a decent user experience or a bill that they can actually afford to pay."
+
+**Agent Substrate** is built around three principles: **security** (networking blocked by default, everything sandboxed, every agent its own identity), **density** (idle agents should cost approximately zero), and **speed** (waking should feel like it never slept). The aspirational goals are on the order of billions of agents per cluster; "we're not quite where we want to be." It is built on Kubernetes: workers are pods, the control plane and policy run on Kubernetes, and when Kubernetes drains a node, workers are notified and move their agents elsewhere.
+
+The concepts, in order:
+
+- **Platform admins** configure the Kubernetes side: how many pods to commit, how to group them, and which policies apply.
+- **Actor template:** the "cookie cutter" (image, arguments, volumes); many actors per template.
+- **Worker:** a pod that consumes cluster resources and runs multiple actors, resuming and suspending them on command. Workers hold limited credentials.
+- **Outlet:** a per-node manager, "a mini control plane running inside the node," that downloads images and uploads and restores snapshots.
+- **ATE net:** a router and an egress. Actors have no IP of their own. The router resolves the DNS name, holds the request, resumes the actor if needed, and forwards it. All outbound traffic goes through the egress, which checks policy and **injects credentials** the actor never holds. The open-source implementations use Envoy and Solo.io's agent gateway, and the layer is meant to be extensible.
+
+```mermaid
+flowchart LR
+  Req["Inbound request"] --> Router["ATE router<br/>resolve name, hold request, resume actor"]
+  Router --> Worker["Worker pod<br/>runs many actors"]
+  Outlet["Outlet<br/>per-node manager: images, snapshots"] --> Worker
+  Worker --> Egress["ATE egress<br/>policy check, inject credentials"]
+  Egress --> Ext["Allowed destination"]
+  Worker -. "suspend" .-> Snap["Local snapshot, then cloud storage"]
+  Snap -. "resume" .-> Worker
+```
+
+Snapshots are layered: the OCI image, the root filesystem changes, memory, and volumes are captured separately. If the actor's image changes (a new release, or a base-image patch for a CVE), the memory and root-filesystem layers no longer fit and are discarded, so the actor cold-starts; only volumes survive. Anything that must persist should go into the **durable dir**: "anything you write in a durable dir will be persisted. That's our promise."
+
+From Q&A:
+
+- **Production use:** customers have run it in production "since, like, 0.2"; it just reached 1.0.
+- **Resources:** CPU and memory are set per actor; there is no in-place resizing yet.
+- **Suspend and offload:** suspend writes a local snapshot first and uploads it to cloud storage asynchronously (in 1.0, after five minutes). The scheduler prefers the machine that holds the latest copy. Suspension is explicit today, usually by the agent harness; resume is automatic when a request reaches the gateway. Automatic idle detection is still gathering requirements.
+- **Not only agents:** anything can run as an actor, but an always-busy service gains little. Wake-ups are HTTP today, with TCP coming and UDP to follow.
+- **Harness inside or outside:** most users run the harness outside the sandbox. A proof of concept running it inside could suspend the actor while waiting on the LLM response.
+- **Why Kubernetes:** "How many people here have a Kubernetes cluster? That's your answer." Many teams want to run on their own infrastructure, in a private VPC, rather than depend on a managed sandbox service.
+- **Policy written by agents:** asked whether an agent can write its own Rego for the policy point, the speakers said there is no good story for that yet.
 
 **Key takeaways**
 
-- **Watch, with the keynote as the best evidence so far.** The keynote showed the architecture (packed sandboxes, snapshot suspend and resume, locked egress) and claimed 1.0 and CNCF Sandbox status. The breakout presumably goes deeper, but it has no slides yet.
 - **Plan for agents as a separate workload class.** Mostly idle, stateful, bursty sessions do not fit Deployments with one shared service account. If we run agents, start from identity, egress, and isolation, not from replica counts.
-- **Risk:** the efficiency numbers are claims from the project's authors. Measure on our own workloads before planning capacity around them.
+- **Copy the credential-injection pattern now.** The egress holds the secret and injects it on allowed calls, so the actor never holds a credential. That is the same placeholder-credential idea as Red Hat's keynote, and it can be reviewed like any other egress policy we deliver through Flux.
+- **Treat image patching as a cold-start event.** A base-image CVE fix discards memory and filesystem snapshots for every actor on that image. If we pilot Agent Substrate, budget for that, and make agent templates write anything important to the durable dir.
+- **Catalog agent templates like any other component.** Templates, policies, and the platform-admin settings are configuration; they belong in Git, delivered by Flux and owned in Backstage, rather than created ad hoc by the harness.
+- **Risk:** the density and scale numbers are aspirational goals from the project's authors. Suspension is manual in 1.0, and resizing is not in place yet. Measure on our own workloads before planning capacity around them.
 
 ---
 
@@ -454,18 +513,70 @@ Agents and agent-like workloads are becoming a predominant class of workload on 
 - **Time:** 17:30–18:00 MT · Hyatt Regency Level 4, Regency Ballroom B
 - **Speakers:** Peter Jausovec, Nina Polshakova, Eitan Yarmush (Solo.io)
 - **Session:** [Lessons Learned Sandboxing Agents with kagent](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1247753)
-- *Based on the session abstract (no slides or recording posted yet).*
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=rAyt198OTFA)
+- *Based on the official recording (no slides posted on Sessionize). YouTube captions were rate-limited, so the speech was transcribed automatically. In the recording, Jausovec and Yarmush present. The closing demo of cloud-managed agents was mostly inaudible and is left out, as are a few other unclear passages. The speakers called this talk a follow-on to Hockin and Berkovich's talk above.*
 
-Is an agent a normal Kubernetes workload? It needs compute, identity, networking, storage, and lifecycle management, so it looks like one. But an agent session is long-lived, stateful, bursty, and mostly idle, and "it can do anything a user can." The sandbox defines what the agent can see, touch, call, and persist: filesystem access, tool permissions, credentials, network policy, identity, and cleanup. The talk covers lessons from designing sandboxing for kagent, including NVIDIA's OpenShell, Kubernetes' agent-sandbox, and Google's substrate support, and what teams should think through before trusting agents with code execution, credentials, network access, and production data.
+Is an agent a normal Kubernetes workload? On paper, yes. It needs compute, identity, networking, and storage. But it has a different shape. A coding-agent session can run for hours and keeps filesystem and memory state, and it spends most of its time waiting on a model, a tool, or a human. Also, "an agent can do anything a user can do": run code, use credentials and API keys, and call APIs. That makes isolation a requirement, not an extra.
 
-From the keynotes: Solo.io announced that kagent 1.0 is rebased on Agent Substrate, and Red Hat showed OpenShell policies and placeholder credentials.
+Their definition of a sandbox is "the thing that decides what an agent can see, touch, call, and persist." It has six parts:
+
+- **Filesystem:** what the agent can read and write, and what survives the session.
+- **Network:** where it can connect, down to methods and paths.
+- **Tools:** which binaries, MCP servers, and APIs it may call.
+- **Credentials:** which secrets it can use, "ideally without ever having access to them or holding on to them."
+- **Identity:** who the agent is to everything it calls, independent of the pod it runs in.
+- **Cleanup:** what survives between sessions, and who may resume a snapshot.
+
+Teams usually think about the first two first. Credentials, identity, and cleanup were the ones they "had to very quickly think about."
+
+**What they tried before Agent Substrate.** They tried four approaches:
+
+- **Their own pod per agent.** It gave them Kubernetes identity, policy, and observability for free, but no real sandbox.
+- **Anthropic's Sandbox Runtime (SRT)**, the one that ships with Claude Code. It wraps a process with filesystem and network limits (bubblewrap on Linux, sandbox-exec on macOS) and sends traffic through a proxy on the host. It was excellent on a developer laptop, but in kagent it meant running many SRT processes inside the pods they already had. There was no per-agent identity, nothing to suspend, a shared host kernel, and the proxy was part of the sandbox runtime instead of outside the agent's process.
+- **Kubernetes agent-sandbox** (a SIG Apps project). Its Sandbox CRD is one stateful pod with a stable identity and persistent storage, running under gVisor or Kata Containers through a RuntimeClass. Warm pools start a pod in under a second. The isolation was right, but the unit was still one always-running pod per agent, so idle agents kept holding CPU and memory.
+- **NVIDIA OpenShell.** It got egress right: placeholder values are swapped for real keys on the way out. But it was still one always-on sandbox per agent, and egress enforcement lived inside the sandbox, as PID 1 in the workload container right next to the agent.
+
+**Why Agent Substrate.** Idle agents hold no compute: they are snapshotted to object storage and cost only that storage. The Kubernetes API is off the hot path: CRDs hold configuration, and actors are handled by Substrate itself. Resuming from a snapshot into a warm worker takes milliseconds, while pods take seconds. And it is secure by default: actors are always sandboxed, hold no keys, and get a default-deny network. Instead of building their own, Solo.io joined the project Google was already building. **kagent 1.0, released the day before the talk, is rebased entirely on Agent Substrate.** The unit is the **actor**: one session, with its own identity, independent of the pod hosting it.
+
+**What changed in kagent's API.** In v0, an Agent became a Deployment, and that was "where a lot of the problems stemmed from." The API is now split into logical pieces:
+
+- **Harness:** the infrastructure piece. The infra team decides where and what can run.
+- **Agent template:** what the agent is.
+- **Agent:** binds the two. The result is packaged into a Substrate actor template, and each new session creates an actor from it ("configure, compile, and converse").
+- **Sandbox template** (new in v1): the OCI image, what is bundled in, which directories are preloaded, which Git repos are pre-cloned, and which skills are included. Agents reach sandboxes over gRPC or MCP through an authN/authZ layer, as "secure execution as a service."
+
+All of these are Kubernetes resources, so "all of this stuff can be checked into Git." Callers use MCP, A2A, or gRPC. A request reaches the gateway, the actor is woken if it is suspended, and because kagent owns the session lifecycle, only the actors someone is actively talking to are running. One community story: a user gave two agents access to the sandbox API, and the agents began exchanging state through files in a sandbox they had both created. Yarmush called that "probably insecure, but pretty awesome," and not something they had planned for.
+
+```mermaid
+flowchart LR
+  H["Harness<br/>infra team: where and what can run"] --> A["Agent"]
+  T["Agent template<br/>what the agent is"] --> A
+  A --> AT["Substrate actor template"]
+  AT -->|"new session"| ACT["Actor<br/>own identity, suspended when idle"]
+  C["Caller<br/>MCP, A2A, or gRPC"] --> GW["Gateway<br/>wakes the actor"]
+  GW --> ACT
+  ST["Sandbox template<br/>image, repos, skills"] --> SB["Sandbox"]
+  ACT -->|"gRPC or MCP, through authN/authZ"| SB
+```
+
+*Diagram drawn from the recording.*
+
+Experimental and not released (only on `main`): built-in support for **cloud-managed agents**, meaning agents that run on a model provider's infrastructure and use your sandboxes. The speakers asked for feedback on whether that belongs in kagent's core.
+
+**Their four lessons:**
+
+1. **Isolation is table stakes.** There are plenty of containers, VMs, and microVMs. The hard part is pausing and resuming, and what that actually means.
+2. **Every control has to sit outside the agent.** "Starting from the posture that everything in the agent is compromised" is the only way they see to secure an actor. That is why egress and all security controls in Substrate live outside the actor.
+3. **Identity follows the actor, not the pod.** Actors move from machine to machine, so identity has to stay stable across them. Traditional network policy and auth are pieces of the system, but they "can't be the whole story anymore."
+4. **An agent is stored data, and your sandbox runtime is now a data format.** Memory snapshots tie an actor to the runtime that produced them. kagent has held off on enabling memory snapshots because of that complexity. Most of the programs they run are Go and start almost instantly anyway.
 
 **Key takeaways**
 
-- **Use the abstract's list as our checklist** for any agent we run: filesystem, tool permissions, credentials, network policy, identity, and cleanup. Each one needs an owner and a default-deny setting.
-- **Try placeholder credentials.** Of the keynote ideas, the one we can most easily copy is giving the agent a placeholder that a proxy swaps for the real secret on egress, so a leaked key is useless.
-- **Watch for the slides or recording** before choosing a sandbox layer.
-- **Risk:** sandboxing that relies on prompts or on the agent's judgment is a sign on the wall, in Red Hat's phrase. Only a policy enforced outside the agent counts.
+- **Use the six parts as a checklist for any agent we run:** filesystem, network, tools, credentials, identity, and cleanup. Each one needs an owner and a default-deny setting. Pay most attention to the three the speakers say teams miss: credentials, identity, and cleanup (including who may resume a snapshot).
+- **Manage agent definitions like the rest of our configuration.** Now that kagent 1.0 splits harness, agent template, and sandbox template into Kubernetes resources, they can live in the repos Flux already reconciles and be owned in our Backstage catalog. That way changes go through review instead of being created by a harness at runtime.
+- **When we evaluate sandbox layers, reject egress enforcement that runs next to the agent.** The OpenShell and SRT lessons are the same: if the proxy or policy runs in the agent's container or process, a compromised agent can reach it.
+- **Check how our workload identity maps to sessions.** If agents move between pods, an identity tied to the pod is not enough by itself, according to the speakers. Any identity we issue to agents should follow the session.
+- **Risk:** kagent 1.0 was one day old at the talk. Cloud-managed agents are experimental and unreleased, memory snapshots are deliberately off, and the demo is not captured here. Treat this as design guidance, not a validated production setup.
 
 **From the community on X:** no slides or recap posts for this breakout turned up on X. The kagent 1.0 release and the enterprise GA, both posted this week, are covered under "The Harness Is the New Runtime" above.
 
@@ -477,7 +588,7 @@ Tuesday backup sessions, shorter notes. These overlapped a primary.
 
 ### Your Agent Needs a Platform: Cloud Native Infrastructure for Multi-Agent AI Systems
 
-Soham Ghadge (GenbaNEXT), 11:30–12:00 MT, Salt Palace Level 2, 255 BC. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1233585) · [Slides (PPTX)](https://sessionize.com/download/ifyasseo~H5DCzp1pPcGGvWXTbxRpq3.pptx~your_agent_needs_a_platform_kubecon_na_2026.pptx). *Based on the uploaded slides.*
+Soham Ghadge (GenbaNEXT), 11:30–12:00 MT, Salt Palace Level 2, 255 BC. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1233585) · [Recording](https://www.youtube.com/watch?v=Zz6LaPEYRFE) · [Slides (PPTX)](https://sessionize.com/download/ifyasseo~H5DCzp1pPcGGvWXTbxRpq3.pptx~your_agent_needs_a_platform_kubecon_na_2026.pptx). *Based on the uploaded slides plus the official recording; speech transcribed automatically, unclear audio left out.*
 
 Treat an agent as a distributed-systems workload. Its tasks run for seconds to minutes, cost money per call, are nondeterministic, carry state, and can fail after partial, paid-for progress. The deck reuses tools we already know:
 
@@ -494,11 +605,13 @@ The cost slide is honest: skip each layer until the failure it prevents costs mo
 
 *Slide from "Your Agent Needs a Platform," Soham Ghadge.*
 
-**For us:** if we build agents in-house, keep model calls inside recorded activities, and give every task an idempotency key before adding retries.
+**From the recording.** The talk ran short (about ten minutes; the speaker said it "has been cut short"). He walked through the failure that motivated it: an agent crashes midway through a sequence of tool calls, and because the model chose the order, nobody knows where it stopped. Restarting the pod from the beginning costs money in repeated LLM calls, so progress must be saved outside the pod and model answers replayed from Dapr. In Q&A, an attendee pointed out that the talk had no agent identity, authorization, or sandboxing. Ghadge agreed it was not a security talk: in his system, agents are triggered by an existing backend that does validation, there is no per-user identity mapping, and the only direct user path, a chatbot, has prompt-injection guardrails.
+
+**For us:** if we build agents in-house, keep model calls inside recorded activities, and give every task an idempotency key before adding retries. This covers reliability only; pair it with the identity, egress, and sandbox controls from the other Tuesday agent talks.
 
 ### Surviving the Churn: Read Replicas and Controllers for Busy Kubernetes Clusters
 
-Ryan Brewster (Anthropic), 12:20–12:50 MT, Salt Palace Level 1, Grand Ballroom ACE. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1249997) · [Slides](https://sessionize.com/download/ipcaxtep~WnRxBpGVL9Geck4gJDe9aP.pdf~surviving-the-churn.pdf). *Based on the uploaded slides.*
+Ryan Brewster (Anthropic), 12:20–12:50 MT, Salt Palace Level 1, Grand Ballroom ACE. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1249997) · [Slides](https://sessionize.com/download/ipcaxtep~WnRxBpGVL9Geck4gJDe9aP.pdf~surviving-the-churn.pdf) · [Recording](https://www.youtube.com/watch?v=F2FBQH6-S6U). *Based on the uploaded slides plus the official recording; speech transcribed automatically, unclear audio left out.*
 
 "Optimizations make it scale. Structural isolation keeps it stable." The war story:
 
@@ -519,17 +632,37 @@ Their wrap-up: alert on falling off the watch (410 relists, etcd fallbacks, watc
 
 *Slide from "Surviving the Churn," Ryan Brewster.*
 
+**From the recording.** Brewster added that 1.38 goes further than the 1.37 copy-on-write snapshot: readers that only need the latest snapshot take it from an atomic pointer, with no lock at all. His sizing advice: size API servers for the degradation spiral, not for the best benchmark, with enough RAM headroom to hold the whole in-memory state of the cluster while Go garbage collection is tuned. On caching proxies: they only serve reads (writes still go to the API server), they let you steer traffic such as lease renewals to dedicated backends so leader election stays reliable, and they cost a few milliseconds on reads and watch events, which "almost every component can tolerate." You can add them opt-in, or point the default `kubernetes` Service at them; then they are no longer sacrificial, but if they collapse the API servers stay available for human operators. He recommends disabling the consistent-list fallback to etcd on large clusters: "It's better to shed load." For write bursts (a crash-looping DaemonSet, a scheduler mass-binding pods), clients that self-throttle are the good fix; API Priority and Fairness on mutations is "mediocre" because the client cannot tell throttling from a degraded API server. In Q&A he said APF budgets are worth having, especially on mutation paths, but the API server cannot know at admission how expensive a filtered list or a slow watcher will be. Their proxy was built in-house; because it only serves reads, "you can generally cobble something together off the shelf with client-go."
+
 **For us:** our clusters are much smaller, but the alerts cost little and catch the start of the spiral. Flux's controllers are informer-based clients like any other.
 
 ### You Don't Have to Choose: Argo and Flux Are Friends!
 
-Emily Chen (Akuity) and Leigh Capili (Flux maintainer, ControlPlane), 14:50–15:20 MT, Salt Palace Level 2, 255 BC. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1223002). *Based on the session abstract (no slides or recording posted yet).*
+Emily Chen (Akuity) and Leigh Capili (Flux maintainer, ControlPlane), 14:50–15:20 MT, Salt Palace Level 2, 255 BC. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1223002) · [Recording](https://www.youtube.com/watch?v=WFWO23libig). *Based on the official recording (no slides posted). Speech transcribed automatically; a few unclear passages, including some product names and one version number, are left out rather than guessed.*
 
-The abstract presents the two projects as complementary, grounded in OpenGitOps principles. Argo CD contributes an application-centric control plane with strong visibility; Flux contributes a modular, controller-driven system with native Helm lifecycle management. It promises real-world hybrid patterns and a framework for deciding when one tool is enough. **For us:** we run Flux; the useful part would be a UI and visibility answer for application teams that does not mean a second reconciler. Wait for the material.
+The premise: large orgs end up with both tools (teams with different preferences, seven-year-old clusters "somebody wanted this way"), both are mature OpenGitOps implementations, and "both together is one plus one bigger than two." Argo CD treats developer experience as seriously as operator experience: the Application (source plus destination) is the core, with a UI showing how resources connect, and it was born as Intuit's dev platform. Flux came out of Weaveworks' original GitOps work. Once people deployed its early monolith 400 times in one cluster, it was split into separate controllers and APIs with a Kubernetes-native mindset, prioritizing security and performance. Progressive delivery differs in shape: Flagger augments existing Deployments, while Argo Rollouts replaces them. Flux Operator (ControlPlane, outside the Flux project) adds ResourceSets, which are similar to an ApplicationSet with templating and dynamic inputs. Kargo (Akuity, Apache 2.0) does promotion between stages and does not replace any CD tool.
+
+**Why they compose:** Argo CD natively understands Flux resources. Community-contributed Lua health checks bubble HelmRelease and Kustomization health (healthy, progressing, degraded) up into an Argo CD Application without extra configuration. Flux's helm-controller uses the real Helm SDK, so installs, upgrades, and rollbacks show up in `helm history`, and vendor charts that depend on Helm's imperative features behave as the vendor intended.
+
+Patterns seen in the field:
+
+- **Hub and spoke:** a central Argo CD managing many clusters; when it hits scaling limits, push HelmReleases to the targets so helm-controller owns the lifecycle locally, while status still bubbles back to the hub.
+- **Split by audience:** platform teams on Flux, application developers on Argo CD's UI.
+- **Kargo for promotion** across any CD tool, including Flux.
+
+**Demos** (all offline on one kind cluster with a local Git server; Flux Operator installed Argo CD, Argo Rollouts, Kargo, and cert-manager):
+
+- **Charts mirrored into a local OCI repository** declaratively, with drift detection. They urged everyone, GitOps or not, to pull charts this way so a chart that disappears upstream (a license "rug pull") is still in your own registry.
+- **Argo CD in front of Flux:** a clear division of labor. Argo CD reads Flux custom resources and health, and Flux touches the workloads. An ArtifactGenerator combined environment values from Git with a cosign-signed chart from OCI into a HelmRelease. A "tamper" script pushed an unsigned artifact; Flux's signature-verification failure showed up as a degraded Argo CD Application for developers, and recovery showed in `helm history`.
+- **Kargo promoting a Flux HelmRelease** (cert-manager) across three virtual clusters. Kargo committed the new version to the test environment's Git path, Flux applied it, and Flux's status came back as check marks on the commit, with Kargo as committer for an audit trail.
+
+The gotcha: Kargo's health checker today only understands Argo CD Applications, so reading Flux status directly needs a checker for standard (`kstatus`-style) conditions, which they want to propose. The other direction works now: a CEL health expression in a Flux Kustomization teaches Flux to read Argo CD Application status, and Flux Operator can show an Argo Application as ready in its inventory. Flux, Argo, and Kubernetes maintainers spent about three hours at the Maintainer Summit on non-standard health checks across the ecosystem.
+
+**For us:** we run Flux, so the useful parts are about improving what we have, not adding a second reconciler. If application teams want a UI, Argo CD can display Flux-managed resources without taking over reconciliation. For our own pipeline, mirror the third-party charts we depend on into our OCI registry, verify signatures in Flux so a tampered chart fails visibly, and use CEL health checks for custom resources whose status Flux cannot read by default.
 
 ### From Bytes to Traces: A Deep Dive into OpenTelemetry eBPF Instrumentation Internals
 
-Rafael Roquetto (Isovalent, Cisco) and Mike Dame (Odigos), 14:50–15:20 MT, Salt Palace Level 2, 255 EF. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1247277) · [Slides](https://sessionize.com/download/ippapgex~s7kfV6PXU528RDYVnxkVnn.pdf~from-bytes-to-traces-kubecon-2026-working-draft.pdf) · [GitHub](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation). *Based on the uploaded slides (labeled a working draft).*
+Rafael Roquetto (Isovalent, Cisco) and Mike Dame (Odigos), 14:50–15:20 MT, Salt Palace Level 2, 255 EF. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1247277) · [Slides](https://sessionize.com/download/ippapgex~s7kfV6PXU528RDYVnxkVnn.pdf~from-bytes-to-traces-kubecon-2026-working-draft.pdf) · [Recording](https://www.youtube.com/watch?v=r6EWXpW0ydw) · [GitHub](https://github.com/open-telemetry/opentelemetry-ebpf-instrumentation). *Based on the uploaded slides (labeled a working draft) plus the official recording; speech transcribed automatically because YouTube captions were rate-limited, unclear audio left out.*
 
 A code-level tour of how OBI turns kernel events into OTLP spans with no SDK changes:
 
@@ -544,11 +677,26 @@ Context propagation inserts a `traceparent` header at `sk_msg`, because `bpf_pro
 
 *Slide from "From Bytes to Traces," Rafael Roquetto and Mike Dame.*
 
-**For us:** a zero-code way to get RED metrics and traces for services we cannot instrument, such as vendor images. Check our node kernels and lockdown settings before counting on propagation.
+**From the recording.** Dame covered the control-plane half and Roquetto the data path. Two themes ran through it: everything in OBI resolves to **PIDs**, and everything is built around data structures.
+
+- **Discovery is its own pipeline.** A process watcher sees new processes. Enrichers add Kubernetes, container, and process metadata until a criteria matcher can decide whether the process matches the configured intent. Then OBI inspects the executable (ELF and `/proc`), reads any process context the application shares, ties the PID to container metadata (used again at export), and attaches.
+- **eBPF is also used internally as a signal.** Instead of constantly scanning every process's ports to match a port selector such as 8080, OBI attaches a probe to the `bind` syscall as a lazy trigger to rescan.
+- **Selectors can be static or dynamic.** Besides the static config, a Go "dynamic selector API" lets an operator or agent change at runtime what is instrumented; it was covered in Dame's Observability Day talk.
+- **Host-wide probes are loaded once.** User space then tells them which PIDs matter through a BPF map, rather than attaching a probe per process.
+- **The HTTP path.** The generic tracer reads bytes from the TCP receive path into a small buffer, along with the PID and connection tuple. A dispatcher classifies the protocol (for HTTP, a quick check for a request or a response). OBI then creates an HTTP info struct in an "ongoing HTTP" BPF map keyed by PID plus connection info, and sets the start time and trace parent. When the response arrives, the finished record goes to user space through a ring buffer. gRPC is "way more complicated."
+- **User space.** Each protocol's struct is converted to the core `request.Span`. Decorators then use the PID to add Kubernetes metadata, resolve names, and handle cardinality, before filtering and OTLP export. The same struct feeds traces, span metrics, service-graph metrics, and RED metrics, with no separate implementation for each.
+
+In Q&A:
+
+- **Filtering at several stages.** The matcher can exclude a process before anything is instrumented. Filters on pod labels or container names need enrichment first, so they run downstream. The export config chooses metrics, traces, or both.
+- **Coexisting with SDKs or Java agents.** Asked how OBI works alongside applications that already have instrumentation, Dame said not losing manual spans is a goal and a big topic in the SIG. Go support is "pretty good," and Java is being worked on. Dame pointed to a talk the day before on combining OBI with the OpenTelemetry injector.
+- One question about service-mesh integration was unclear in the audio and is left out.
+
+**For us:** a zero-code way to get RED metrics and traces for services we cannot instrument, such as vendor images. Check our node kernels and lockdown settings before counting on context propagation, and put the exclusions in the matcher rather than dropping data after export.
 
 ### Just Keep Swimming: Benchmarking OSS Agent Memory on Kubernetes with OpenTelemetry
 
-Henrik Rexed (Dynatrace), 15:40–16:10 MT, Hyatt Regency Level 4, Regency Ballroom B. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1241330) · [Slides](https://sessionize.com/download/lhasjeq~PJgsfWjza9BoSTUBGrGy6q.pdf~just-keep-swimming.pdf). *Based on the uploaded slides.*
+Henrik Rexed (Dynatrace), 15:40–16:10 MT, Hyatt Regency Level 4, Regency Ballroom B. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1241330) · [Slides](https://sessionize.com/download/lhasjeq~PJgsfWjza9BoSTUBGrGy6q.pdf~just-keep-swimming.pdf) · [Recording](https://www.youtube.com/watch?v=LSFk3nqozcY). *Based on the uploaded slides plus the official recording; speech transcribed automatically, unclear audio left out.*
 
 Five open-source agent memory systems (MemOS, Zep/Graphiti, MemPalace, Mem0, MemKeys) behind one MCP server, run on kagent and CrewAI, with OpenTelemetry spans on add, search, and recall. Each was scored as a warm run minus a cold run. In the single SRE-agent scenario, MemOS, Zep, and MemPalace improved; Mem0 and MemKeys got worse. In the multi-agent "fact change" test, MemKeys scored highest. The deck does not explain the scoring scale.
 
@@ -556,24 +704,44 @@ Five open-source agent memory systems (MemOS, Zep/Graphiti, MemPalace, Mem0, Mem
 
 *Slide from "Just Keep Swimming," Henrik Rexed.*
 
-**For us:** memory can make an agent worse. If we add one, benchmark with and without it on our own tasks, as he did.
+**From the recording.** Asked to name a winner across both scenarios, Rexed picked MemPalace as "very efficient in both," with Zep, a temporal knowledge graph, also working well. He noted that most memory tools have no UI, which makes it hard to see when memory fills with noise that pollutes later searches; pruning memory can help. In Q&A, asked whether these tools can **scope memories** (for example, a Slack bot that must not surface one user's DM context in a shared channel), he said he did not know and had not tested isolation, calling it a good security question. He limited the benchmark to projects with open-source licenses and dropped some earlier candidates after licensing changes. Adding a tool to the benchmark is "painful": it needs MCP connectivity and OpenTelemetry instrumentation (which he contributed for some tools) before any run.
+
+**For us:** memory can make an agent worse. If we add one, benchmark with and without it on our own tasks, as he did, and test scoping before any shared memory sees regulated data: the speaker had not checked whether these tools isolate memories between users or channels.
 
 ### GitOps Without You Writing YAML: How Flux Grounds AI Agents in Real APIs
 
-Stefan Prodan (Flux core maintainer), 16:40–17:10 MT, Salt Palace Level 2, 251 D–F. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1289630). *Based on the session abstract (no slides or recording posted yet).*
+Stefan Prodan (Flux core maintainer, ControlPlane), 16:40–17:10 MT, Salt Palace Level 2, 251 D–F. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1289630) · [Recording](https://www.youtube.com/watch?v=HkhJaSyh6V0). *Based on the official recording (no slides posted). YouTube captions were rate-limited, so the speech was transcribed automatically; a few stretches during the demos were unclear and are left out.*
 
-The abstract describes the Flux project's tools for agents that write manifests:
+Prodan's goal: AI should be "the true YAML engineer." His argument is that configuration is harder for an agent to get right than code. YAML is pure data, a small change can take everything down, and many of the largest recent global incidents came from a fat-fingered `terraform apply` or internal CLI, not from a code bug. Agents relying only on training data and the harness invent fields, confuse fields, and hallucinate enum values, and training data goes stale faster than models are retrained.
 
-- static validation using the API server's own semantics, to stop hallucinated fields and invented enum values;
-- a schema catalog covering 100+ cloud-native projects;
-- a public MCP server that grounds every generated manifest in the real APIs;
-- GitOps Agent Skills that turn assistants into repository auditors.
+The obvious fixes all fall short. Testing against a live cluster needs write access, because "there is no diff verb in the Kubernetes RBAC," and an agent that runs `diff` against production might run something destructive next. A kind replica cannot reproduce cloud-specific resources. Web search surfaces stale or wrong blog posts that can outrank the Flux docs.
 
-It closes with the Flux roadmap. **For us:** this is the most relevant backup after the Meltdown talk. Point our coding agents at the Flux MCP server and schema catalog before they write Kustomizations or HelmReleases, and try the Agent Skills as a repository auditor on our fleet repo. Check what each tool can write before giving it access.
+What the Flux project built instead, as CLI plugins (the new Flux plugin system) designed for both CI and agents:
+
+- **`flux schema`** validates manifests offline with the API server's own rules, including metadata conformance such as label-value restrictions ("not even a simple regex"). It understands SOPS-encrypted Secrets, validating only the keys because the values are encrypted, and it validates any CRD, not only Flux's.
+- **An ecosystem catalog** of CRD schemas: CNCF projects and beyond, including the AWS and Google controllers, with six Kubernetes versions kept back so an enterprise can validate against the version it actually runs. Missing CRDs are added by opening an issue; the catalog repo does not accept pull requests, and agents do the onboarding.
+- **A public MCP server** on top of the catalog, now at about one million requests per day. Its instruction field tells the agent never to write YAML before looking up the schema. Raw OpenAPI schemas blew up the context and confused the agent over long sessions, so the MCP exposes a **grep schema** tool that returns a compact, grep-friendly schema for just the path the agent asks about (for example `spec.something`). Field descriptions come back with the schema, so well-documented CRDs make agents markedly better.
+- **Agent Skills:** GitOps knowledge (repository-structure best practices from ten years of Flux users), a **GitOps repository audit** that starts from a `flux schema` discovery command giving the agent a tree of overlays and secrets (and flags secrets placed in HelmReleases), and a **cluster debug** skill that uses the in-cluster Flux MCP server as an on-call SRE helper.
+
+```mermaid
+flowchart LR
+  A["Coding agent"] -->|"look up before writing"| M["Public MCP server<br/>grep schema, compact output"]
+  M --> C["Ecosystem catalog<br/>CRD schemas, 6 Kubernetes versions back"]
+  A --> Y["Generated manifests"]
+  Y --> V["flux schema validate<br/>offline, SOPS-aware, any CRD"]
+  V -->|"concise errors"| A
+  V --> PR["Pull request and CI"]
+```
+
+How they measure it: run prompts through agents from zero context for hours or days, grade the results, then change the tool or skill and see whether the error rate drops. Compared with web search, the MCP cut the number of calls and tokens by more than half. The validation errors are concise enough that the agent calls the MCP again, fixes the object, and converges, like running a formatter on generated code. His tip for skill authors: test skills on weaker or quantized models, not the best model; if those do well, the skill is good. The skills are on their third major iteration, and currently lean toward locked-down enterprise layouts (multi-tenancy, security contexts, network policies), which can be wrong advice for a single-cluster home setup; he asked for issues when that happens.
+
+Roadmap: vendor-neutral workload identity through SPIFFE integration is the main focus, plus arbitrary dependency management and better OpenTelemetry integration.
+
+**For us:** this is the most relevant backup after the Meltdown talk. Run `flux schema` validation in CI on our fleet repo, including the SOPS-encrypted Secrets that generic validators reject. Point our coding agents at the MCP before they write Kustomizations or HelmReleases, and pin the Kubernetes version they validate against to the one our clusters run. Try the repository audit skill on our fleet repo, but read its multi-tenancy advice against how our repos actually reflect team ownership. Check what each tool can write before giving it access; the cluster-debug skill talks to a live cluster.
 
 ### GitOps Meltdown: How a Commit Triggered a Cascading Delete of 39 Clusters in Production
 
-Deepak Goel (Nutanix), 17:30–18:00 MT, Salt Palace Level 2, 255 BC. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1250559) · [Slides](https://sessionize.com/download/imkaldei~UCWPAmGCwir4YhJML3A7hy.pdf~gitops-meltdown.pdf). *Based on the uploaded slides.*
+Deepak Goel (Nutanix), 17:30–18:00 MT, Salt Palace Level 2, 255 BC. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1250559) · [Slides](https://sessionize.com/download/imkaldei~UCWPAmGCwir4YhJML3A7hy.pdf~gitops-meltdown.pdf) · [Recording](https://www.youtube.com/watch?v=ZcD4Q57mAY8). *Based on the uploaded slides plus the official recording; speech transcribed automatically, unclear audio left out.*
 
 The platform:
 
@@ -628,13 +796,15 @@ Five lessons:
 
 "Automation is only as safe as the desired state it trusts."
 
+**From the recording.** Goel added a detail the deck leaves implicit: the cluster logging pipeline ran through Fluent Bit, which was deleted along with everything else, so the logs needed during the incident were gone too. His advice is to test whether observability and backups survive a catastrophe, not only the happy path: "do the drill, like delete everything and see how bad it is to bring the system back," and consider whether daily backups are frequent enough for sensitive data. For stateful applications, know every place a delete can propagate (StatefulSet, PVC, PV, and the storage layer), because there is no single place to set retention. His closing line: "automation is as safe as the desired state." In Q&A, an audience member noted that the same foot-gun exists without any GitOps tool: deleting a Namespace removes everything in it with one API call. Goel agreed: check deletes as carefully as creates.
+
 **For us:** this is the top Flux action from Tuesday (next step 1 above). Check whether any of our Kustomizations has a similar single-root inventory, and add the guards before an incident rather than after.
 
 ---
 
 ## Sources
 
-Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wednesday 11 November 2026. Keynote and session recordings were searched on the official CNCF YouTube channel the same day; only the keynotes have been posted. Rechecked on the evening of 12 November 2026: the opening remarks are now posted and covered above; none of the Tuesday breakout sessions below have been posted, and no new Tuesday decks were uploaded. Public X posts were rechecked on 15 November 2026 for post-conference recaps; new items are cited under Agent Substrate and The Identity Crisis above. Rechecked Sessionize and the official CNCF YouTube channel again on 20 November 2026: the Platform Engineering after the AI Hype deck is now on Sessionize and is covered above; still no Tuesday breakout recordings.
+Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wednesday 11 November 2026. Keynote and session recordings were searched on the official CNCF YouTube channel the same day; only the keynotes have been posted. Rechecked on the evening of 12 November 2026: the opening remarks are now posted and covered above; none of the Tuesday breakout sessions below have been posted, and no new Tuesday decks were uploaded. Public X posts were rechecked on 15 November 2026 for post-conference recaps; new items are cited under Agent Substrate and The Identity Crisis above. Rechecked Sessionize and the official CNCF YouTube channel again on 20 November 2026: the Platform Engineering after the AI Hype deck is now on Sessionize and is covered above; still no Tuesday breakout recordings. Rechecked the official CNCF YouTube channel on 23 November 2026: every Tuesday breakout in these notes now has an official recording, and each section below links it. Rechecked Sessionize and YouTube again on 24 November 2026: no further Tuesday decks or recordings.
 
 ### Based on the official recording (keynotes, no slides)
 
@@ -649,7 +819,9 @@ Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wedne
 - The Identity Crisis: Who Is the AI Agent in Your Cluster?
 - From Pod to Actuator: Physical AI and the Future of Kubernetes
 
-### Based on uploaded slides
+### Based on uploaded slides plus the official recording
+
+Recordings found on 23 November 2026.
 
 **Primaries**
 
@@ -666,7 +838,9 @@ Rechecked against the live Sessionize APIs (`svi82w6c` main conference) on Wedne
 - Just Keep Swimming: Benchmarking OSS Agent Memory on Kubernetes with OpenTelemetry
 - GitOps Meltdown: How a Commit Triggered a Cascading Delete of 39 Clusters in Production
 
-### Based only on the official session abstract (no slides or recording yet)
+### Based on the official recording (no slides posted)
+
+Recordings found on 23 November 2026.
 
 **Primaries**
 

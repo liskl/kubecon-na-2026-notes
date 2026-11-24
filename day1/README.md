@@ -12,6 +12,8 @@ Slide links are the official Sessionize "Presentation Slides" uploads, rechecked
 
 **Updated 20 November 2026.** CNCF posted official recordings for additional Monday colocated sessions (FluxCon, Open Source Security Con, Observability Day, and Kubernetes on Edge Day), and those talks below now link to the recording. Notes from talks that already had a deck add only what the recording introduced. Flux After 10 Years, Zero-Touch App Team Onboarding, and Agentic GitOps had no Sessionize deck, so those sections were rewritten from the official recordings, with architecture and demo details checked against the slides on screen.
 
+**Updated 24 November 2026.** CNCF has posted the last two Monday recordings, both five-minute lightning talks: What Changes When Crossplane Adoption Gets Real and etcd Operator, Rebuilt and Ready (found on 23 November). Both sections are now based on the official recording, so every Day 1 session in these notes now has an official recording.
+
 ---
 
 ## Cross-cutting themes
@@ -266,18 +268,36 @@ In Q&A, the reliably audible points were: vendor Helm charts that demand cluster
 ### What Changes When Crossplane Adoption Gets Real
 
 - **Time:** 12:27–12:32 MT · Hyatt Regency Level 4, Regency Ballroom B–D
-- **Speaker:** Mitchell Davis
+- **Speaker:** Mitchell Davis (American Family Insurance)
 - **Session:** [What Changes When Crossplane Adoption Gets Real](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1289889)
-- *Based on the session abstract (no slides posted yet). This was a five-minute lightning talk.*
+- **Recording:** [Official CNCF YouTube](https://www.youtube.com/watch?v=FIeEZUhd2bY)
+- *Based on the official recording (no slides posted on Sessionize). This was a five-minute lightning talk. YouTube captions were rate-limited, so the speech was transcribed automatically.*
 
-Building a Crossplane control plane is one thing; getting real teams at a risk-averse enterprise to use it is another. The abstract is a field report from the platform lead at a large insurance company after they left the prototype stage and actual developer teams started using the platform. Expected topics: the shift from Jira-driven requests to self-service infrastructure, how to design composition APIs developers will actually use, and hard lessons on abstractions, defaults, ownership, and support.
+Davis leads the cloud architecture team behind American Family Insurance's Crossplane platform. More than 50 teams now use it to get infrastructure "in minutes"; not long ago that took days to weeks. His framing: "Building the control plane was the easy part, getting real teams to actually use it was the hard part."
+
+Their infrastructure model had swung like a pendulum: first a central DevOps team and a ticket queue, then reusable Terraform modules that app teams forked ("fork and forget," with every team drifting and owning its own upgrades), and now back to the center, but self-service. They started on Crossplane with the thing they knew best, EKS. That produced a pattern that worked, but not users. Four things had to change:
+
+1. **The API.** The first contract "looked like it was written by infrastructure people because it was." The XRD is the contract developers see; the composition is everything the platform team owns underneath. "The API is the product. Every field they see is a choice they make. Every field they don't see is a default we own."
+2. **The relationship with developers.** Teams were happy to hand over the burden of their forks; they pushed back on *how*. They wanted ease of use, sensible defaults with escape hatches, and a clear shared-responsibility model. That meant treating the platform as a product, "which took humility."
+3. **Defaults.** His example is Karpenter node disruption: the XRD default is nightly, so most teams never touch it, but a team can pick a preset (weekends, or a set weekday). He calls it "the illusion of choice": most decisions are already made on purpose, and the choices left are the ones that matter to teams.
+4. **How they ship.** Once teams relied on the platform, every platform change was a change to their infrastructure. Swapping the ingress controller on about 30 EKS clusters was one composition change that teams did not notice. Now every change rolls out by control-plane tier: sandbox, pre-prod, then production last.
+
+Today: 13 patterns across AWS and GCP, more than 160 Kubernetes clusters built and managed through the platform, and 50+ teams.
+
+```mermaid
+flowchart LR
+  XRD["XRD<br/>the contract developers see<br/>few fields, preset choices"] --> Comp["Composition<br/>everything the platform team owns"]
+  Comp --> SB["Sandbox control plane"]
+  SB --> PP["Pre-prod control plane"]
+  PP --> Prod["Production control plane, last"]
+```
 
 **Key takeaways**
 
-- **Watch for the recording.** Five minutes is short, but an insurance-company adoption story is close to our constraints (risk-averse, regulated, existing request queues). The useful question is how a composition API would sit next to the Backstage and Flux we already run, not whether it would replace them.
-- **Try, once we have the talk rather than the abstract:** if we already have Crossplane compositions, review them for the failure modes the abstract flags — APIs developers cannot use, weak defaults, and unclear ownership and support. If we do not, use those same tests before adding one.
-- **Keep the framing next to our existing portal:** leaving a prototype is an adoption and support problem, not only a control-plane problem. A composition that only the platform team can operate is still a ticket queue, which is the problem Backstage is already supposed to take off that queue. Catalog and own the API in Backstage; let Flux apply what passed review.
-- **Risk:** without slides, we do not have the concrete API or ownership patterns they ended up with. Do not treat the abstract as a how-to.
+- **Review our Backstage templates and any Crossplane XRDs with his test:** every field a developer sees is a decision we are asking them to make. If a field exists only because the platform team needed it, move it into the composition (or the template's defaults) and own it.
+- **Offer bounded presets instead of free-form fields.** His Karpenter disruption-window presets are a pattern we can reuse in our Backstage scaffolder forms and Flux-delivered defaults: a sane default most teams never touch, plus a short list of allowed alternatives.
+- **Roll platform changes out by tier through Flux.** One composition or base-manifest change can silently touch every consumer. Promote changes through sandbox, pre-prod, then production clusters, rather than merging once and letting every cluster reconcile at the same time.
+- **Risk:** this was five minutes with no deck. It describes the shape of their API and rollout, not the actual XRD fields or tooling, so treat it as design guidance, not a how-to.
 
 ---
 
@@ -683,18 +703,31 @@ The closing line: "GitOps is about what we owe to each other — agents included
 
 ### etcd Operator, Rebuilt and Ready
 
-Arka Saha, 12:34–12:39 MT, Hyatt Regency Level 4, Regency Ballroom B–D. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1289890). *Based on the session abstract (no slides posted yet). Five-minute lightning talk.*
+Arka Saha (Broadcom), 12:34–12:39 MT, Hyatt Regency Level 4, Regency Ballroom B–D. [Session](https://events.linuxfoundation.org/kubecon-cloudnativecon-north-america/program/schedule/?id=1289890) · [Recording](https://www.youtube.com/watch?v=EXD3lipOa8A). *Based on the official recording (no slides posted). Five-minute lightning talk; speech transcribed automatically, and the first few seconds and the closing roadmap were partly cut off or unclear, so they are left out.*
 
-The etcd-operator has been refactored onto custom controllers, and the new version can automatically replace failed cluster members. The abstract promises milestones, the current feature set, and the user experience. Worth a look at the recording if we operate etcd ourselves; there is not enough in the abstract to act on yet.
+The recap: 0.1 bootstrapped the framework (create an etcd cluster, scale up and down), and 0.2 added TLS, both still built on a StatefulSet. 0.3 replaces the StatefulSet with the project's own controller. The reason is member failure. Any etcd member can get corrupted, and in a three-member cluster a second bad member has to be hot-swapped, which is not how StatefulSets behave. A removed pod also tends to leave a stale PVC behind.
 
-**From the community on X:** [@kubernetesio](https://x.com/kubernetesio/status/2118902008081985916) (6 Nov 20:03 MT) linked the project's [etcd-operator v0.3.0 announcement](https://etcd.io/blog/2026/announcing-etcd-operator-v0.3.0/), which fills in what the abstract only hints at:
+The new design has one controller managing the cluster end to end, with two CRDs: the `EtcdCluster` the user defines, which manages per-member CRs that in turn manage the pods and PVCs. When a corruption signal fires, the controller identifies the bad member, removes it from the cluster, deletes its pod and PVC, starts a new pod with a fresh PVC, adds it as a **learner**, and waits for it to catch up before it becomes a voter.
 
-- The operator moved from a StatefulSet to a custom controller.
+```mermaid
+flowchart LR
+  C["EtcdCluster CR<br/>version, size"] --> M["Per-member CRs"]
+  M --> P["Pods and PVCs"]
+  A["Corrupt alarm on one member"] --> R["Remove member, delete pod and PVC"]
+  R --> N["New pod, fresh PVC"]
+  N --> L["Join as learner"]
+  L --> V["Promote to voter after catch-up"]
+```
+
+For users, the YAML is unchanged (version and size, as before). The one addition he called out is a **pause**: if a member gets stuck during a version upgrade, you pause reconciliation, fix it by hand, and unpause, so the cluster is not "stuck forever."
+
+**From the community on X:** [@kubernetesio](https://x.com/kubernetesio/status/2118902008081985916) (6 Nov 20:03 MT) linked the project's [etcd-operator v0.3.0 announcement](https://etcd.io/blog/2026/announcing-etcd-operator-v0.3.0/), which matches the talk and adds:
+
 - v0.3.0 clusters self-heal after losing a member and after CORRUPT and NOSPACE alarms.
 - After losing quorum, a cluster can be restored with intervention.
 - Health checks and status reporting are expanded.
 
-This is the project's release post, not the talk's material, so the section stays labeled abstract-based.
+**For us:** this matters only where we operate etcd ourselves rather than through a managed control plane. In that case, the learner-based replacement and the upgrade pause are the two behaviors to test before trusting it, and the operator can be delivered and pinned through Flux like any other controller.
 
 ### Who Owns This? Automating Backstage Catalog Ownership at Scale
 
@@ -824,7 +857,7 @@ Searches on X for FluxCon and BackstageCon (9–12 Nov) mostly returned booth an
 
 ## Sources
 
-Rechecked against the live Sessionize APIs (`ayajbd6b` colocated, `svi82w6c` main) on the morning of Tuesday 10 November 2026. One primary deck URL had changed since the previous day: "Can Your Agent Execute Anything?" now points at the `ikjacwei~…` upload listed above. Public X posts were rechecked on 15 November 2026 for post-conference recaps; the new Flux 2.10 mention is cited under "Flux After 10 Years" above, with the official release date confirmed against GitHub. Rechecked Sessionize and the official CNCF YouTube channel again on 20 November 2026: no new Day 1 decks were uploaded, and official recordings were posted for the colocated sessions listed under "slides plus the official recording" and "the official recording" below. Two Day 1 talks still have neither slides nor a recording.
+Rechecked against the live Sessionize APIs (`ayajbd6b` colocated, `svi82w6c` main) on the morning of Tuesday 10 November 2026. One primary deck URL had changed since the previous day: "Can Your Agent Execute Anything?" now points at the `ikjacwei~…` upload listed above. Public X posts were rechecked on 15 November 2026 for post-conference recaps; the new Flux 2.10 mention is cited under "Flux After 10 Years" above, with the official release date confirmed against GitHub. Rechecked Sessionize and the official CNCF YouTube channel again on 20 November 2026: no new Day 1 decks were uploaded, and official recordings were posted for the colocated sessions listed under "slides plus the official recording" and "the official recording" below. At that point two Day 1 talks still had neither slides nor a recording. Rechecked Sessionize and the official CNCF YouTube channel on 23 and 24 November 2026: still no new Day 1 decks, and the two remaining Monday lightning talks now have official recordings, so no Day 1 section is based only on the abstract any more.
 
 ### Based on uploaded slides plus the official recording
 
@@ -855,21 +888,13 @@ Recordings are the official CNCF YouTube uploads, reviewed on 11 November 2026 f
 - IDPs Are Dead: Platform Engineering in the Age of AI Agents
 - Flux After 10 Years: GitOps for Humans and Agents
 - Zero-Touch App Team Onboarding: Powering Self-Service Kubernetes at Enterprise Scale with Flux
+- What Changes When Crossplane Adoption Gets Real (recording found on 23 November 2026)
 
 **Backups**
 
 - Your Agent Shouldn't Log in as You: Identity for MCP in Backstage
 - Agentic GitOps: Agent and Sandbox Guardrails with Flux
-
-### Based only on the official session abstract (no slides or recording yet)
-
-**Primaries**
-
-- What Changes When Crossplane Adoption Gets Real
-
-**Backups**
-
-- etcd Operator, Rebuilt and Ready
+- etcd Operator, Rebuilt and Ready (recording found on 23 November 2026)
 
 ---
 
